@@ -15,6 +15,7 @@
         <button onclick="abrirLogin()" id="btn-login">Entrar</button>
         <button onclick="logout()" id="btn-logout" style="display:none">Sair</button>
         <button onclick="abrirPerfil()" id="btn-perfil" style="display:none">👤</button>
+        <button onclick="abrirWishlist()" id="btn-wishlist" style="display:none; background:transparent; font-size:20px;">❤️</button>
       </div>
       <button id="btn-admin" onclick="location.href='admin.html'" style="display:none">Painel</button>
       <div class="carrinho-icone" onclick="abrirCarrinho()">
@@ -26,28 +27,41 @@
   <!-- BANNER -->
   <section class="banner">
     <div>
-      <h2>🔥 Ofertas Imperdíveis</h2>
+      <h2>🔥 Tecnologia de Ponta</h2>
       <p>iPhone, Tênis e T-Shirts com entrega em Luanda</p>
       <p style="font-size:14px; margin-top:10px; opacity:0.8;">⭐ Mais de 500 clientes satisfeitos</p>
     </div>
   </section>
 
-  <!-- COPY 1 - BARRA DE DESTAQUE -->
-  <div style="background: #1E3A8A; color: white; padding: 12px; text-align: center; font-size: 14px;">
-    🚀 <strong>Frete Grátis</strong> em compras acima de 200.000 KZ | 
-    📦 Entregamos em toda Luanda | 
-    💳 Parcelamos em até 3x sem juros
+  <!-- BANNER TECH 1 - IPHONE -->
+  <div class="banner-tech" style="background: linear-gradient(135deg, #1a1a2e, #16213e); color: white; padding: 40px 20px; text-align: center; margin: 20px auto; max-width: 1200px; border-radius: 15px;">
+    <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 30px;">
+      <div style="flex: 1; min-width: 250px;">
+        <h2 style="font-size: 2.5em; margin-bottom: 10px;">📱 iPhone 13 Pro Max</h2>
+        <p style="font-size: 1.2em; opacity: 0.9;">O poder da inovação na sua mão</p>
+        <p style="font-size: 1.5em; font-weight: bold; color: #22C55E; margin-top: 10px;">A partir de 625.000 KZ</p>
+        <button onclick="document.getElementById('produtos').scrollIntoView({behavior:'smooth'}), document.getElementById(produtos(filtrar('iphone')))"  style="background: #22C55E; color: white; border: none; padding: 12px 30px; border-radius: 8px; font-size: 1.1em; font-weight: bold; cursor: pointer; margin-top: 15px;">
+          Ver iPhones
+        </button>
+      </div>
+      <div style="flex: 1; min-width: 200px;">
+        <span style="font-size: 100px;">📱</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- COPY ATUALIZADA - ANTES DOS PRODUTOS -->
+  <div style="text-align: center; max-width: 700px; margin: 0 auto 30px; padding: 25px; background: #EFF6FF; border-radius: 12px; border-left: 4px solid #1E3A8A;">
+    <p style="font-size: 18px; font-weight: bold; color: #1E3A8A;">🌟 Qualidade e Transparência</p>
+    <p style="color: #374151; margin-top: 5px;">
+      Todos os produtos têm informações claras sobre <strong>status (novo/recondicionado)</strong>,
+      <strong>frete</strong> e <strong>disponibilidade</strong>. 
+      <br>Compre com confiança!
+    </p>
   </div>
 
   <section id="produtos">
     <h2>Nossos Produtos</h2>
-    
-    <!-- COPY 2 - ANTES DOS PRODUTOS -->
-    <div style="text-align: center; max-width: 600px; margin: 0 auto 30px; padding: 20px; background: #F0FDF4; border-radius: 12px; border: 2px dashed #22C55E;">
-      <p style="font-size: 18px; font-weight: bold; color: #065F46;">🌟 Produtos Premium com Preço Justo</p>
-      <p style="color: #374151;">Todos os nossos produtos são selecionados com qualidade garantida. 
-      <br>Compre com confiança!</p>
-    </div>
     
     <div class="filtros" id="filtros-categorias">
       <button onclick="filtrar('todos')" class="ativo">Todos</button>
@@ -83,6 +97,25 @@
       </div>
     </div>
   </section>
+
+  <!-- FAQ SECTION -->
+  <section id="faq" style="padding:50px 20px; max-width:1200px; margin:auto;">
+    <h2>❓ Perguntas Frequentes</h2>
+    <div id="faq-container" style="max-width:800px; margin:0 auto;">
+      <p>Carregando...</p>
+    </div>
+  </section>
+
+  <!-- NEWSLETTER SECTION -->
+  <div style="background: #1E3A8A; color: white; padding: 40px 20px; text-align: center;">
+    <h3>📬 Fique por dentro das novidades!</h3>
+    <p style="margin: 10px 0;">Receba ofertas exclusivas e lançamentos</p>
+    <div style="max-width:500px; margin:20px auto; display:flex; gap:10px; flex-wrap:wrap; justify-content:center;">
+      <input id="newsletter-nome" placeholder="Seu nome" style="flex:1; min-width:150px; padding:12px; border-radius:8px; border:none;">
+      <input id="newsletter-email" type="email" placeholder="Seu email" style="flex:2; min-width:200px; padding:12px; border-radius:8px; border:none;">
+      <button onclick="inscricaoNewsletter()" style="background:#22C55E; color:white; border:none; padding:12px 25px; border-radius:8px; font-weight:bold; cursor:pointer;">Inscrever</button>
+    </div>
+  </div>
 
   <!-- COPY 4 - RODAPÉ COM CTA -->
   <div style="background: #F8FAFC; padding: 40px 20px; text-align: center;">
@@ -127,7 +160,6 @@
       <input id="senha-login" type="password" placeholder="Senha">
       <button class="btn" onclick="login()">Entrar</button>
       <p>Não tem conta? <a href="javascript:void(0)" id="link-cadastro" onclick="abrirCadastro(); fecharLogin(); return false;">Cadastre-se</a></p>
-      
     </div>
   </div>
 
@@ -142,7 +174,7 @@
       <input id="regiao-cadastro" placeholder="Região (ex: Luanda, Kilamba)" required>
       <input id="senha-cadastro" type="password" placeholder="Senha (mínimo 6 caracteres)" required>
       <button class="btn" onclick="cadastrar()">Cadastrar</button>
-      <p>Ja tem conta? <a href="javascript:void(0)" id="link-login" onclick="abrirLogin(); fecharCadastro(); return false;">Faça login</a></p>
+      <p>Já tem conta? <a href="javascript:void(0)" id="link-login" onclick="abrirLogin(); fecharCadastro(); return false;">Faça login</a></p>
     </div>
   </div>
 
@@ -158,8 +190,10 @@
         <p><strong>Região:</strong> <span id="perfil-regiao"></span></p>
         <p><strong>Membro desde:</strong> <span id="perfil-data"></span></p>
       </div>
-      <button class="btn" onclick="abrirEditarPerfil()">✏️ Editar Perfil</button>
-      <button class="btn" onclick="verPedidos()" style="background:#6366F1;">📦 Meus Pedidos</button>
+      <div style="display:flex; flex-wrap:wrap; gap:10px; margin-top:15px;">
+        <button class="btn" onclick="abrirEditarPerfil()" style="flex:1;">✏️ Editar Perfil</button>
+        <button class="btn" onclick="verPedidos()" style="background:#6366F1; flex:1;">📦 Meus Pedidos</button>
+      </div>
       <div id="perfil-pedidos" style="margin-top:15px; display:none;"></div>
     </div>
   </div>
@@ -192,6 +226,49 @@
         </select>
       </div>
       <button class="btn btn-whatsapp" onclick="finalizar()">📱 Finalizar no WhatsApp</button>
+    </div>
+  </div>
+
+  <!-- MODAL RASTREIO -->
+  <div id="modal-rastreio" class="modal">
+    <div class="modal-conteudo">
+      <span class="fechar" onclick="fecharRastreio()">&times;</span>
+      <h2>📦 Rastreio do Pedido</h2>
+      <div id="rastreio-conteudo">
+        <p>Carregando...</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL WISHLIST -->
+  <div id="modal-wishlist" class="modal">
+    <div class="modal-conteudo" style="max-width:700px;">
+      <span class="fechar" onclick="fecharWishlist()">&times;</span>
+      <h2>❤️ Minha Wishlist</h2>
+      <div id="wishlist-itens">
+        <p style="text-align:center; padding:20px; color:#666;">Carregando...</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL AVALIAÇÃO -->
+  <div id="modal-avaliacao" class="modal">
+    <div class="modal-conteudo">
+      <span class="fechar" onclick="fecharModalAvaliacao()">&times;</span>
+      <h2>⭐ Avaliar Produto</h2>
+      <div style="margin:15px 0;">
+        <label>Nota:</label>
+        <select id="avaliacao-nota" style="width:100%;">
+          <option value="5">⭐⭐⭐⭐⭐ - Excelente</option>
+          <option value="4">⭐⭐⭐⭐ - Bom</option>
+          <option value="3">⭐⭐⭐ - Regular</option>
+          <option value="2">⭐⭐ - Ruim</option>
+          <option value="1">⭐ - Péssimo</option>
+        </select>
+      </div>
+      <input id="avaliacao-titulo" placeholder="Título da avaliação">
+      <textarea id="avaliacao-comentario" rows="4" placeholder="Escreva seu comentário..." style="width:100%; padding:10px; border:2px solid #ddd; border-radius:8px;"></textarea>
+      <button class="btn" onclick="enviarAvaliacao()">Enviar Avaliação</button>
     </div>
   </div>
 

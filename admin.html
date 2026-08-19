@@ -42,6 +42,40 @@
       </div>
     </div>
 
+    <!-- MARKETING -->
+    <div style="margin-bottom:30px; padding:20px; background:#F0FDF4; border-radius:10px; border:1px solid #86EFAC;">
+      <h3 style="color:#065F46;">📧 Marketing e Clientes</h3>
+      <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:10px;">
+        <button onclick="exportarContatos()" class="btn" style="background:#6366F1;">
+          📥 Exportar Contatos (CSV)
+        </button>
+        <button onclick="abrirModalCampanha()" class="btn" style="background:#F59E0B;">
+          📨 Nova Campanha
+        </button>
+        <button onclick="carregarMarketingStats()" class="btn" style="background:#22C55E;">
+          🔄 Atualizar Stats
+        </button>
+      </div>
+      <div id="marketing-stats" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(120px,1fr)); gap:10px; margin-top:15px;">
+        <div style="background:white; padding:15px; border-radius:8px; text-align:center;">
+          <p style="font-size:12px; color:#666;">Total Clientes</p>
+          <p id="stat-total-clientes" style="font-size:24px; font-weight:bold; color:#1E3A8A;">0</p>
+        </div>
+        <div style="background:white; padding:15px; border-radius:8px; text-align:center;">
+          <p style="font-size:12px; color:#666;">Newsletter</p>
+          <p id="stat-newsletter" style="font-size:24px; font-weight:bold; color:#16A34A;">0</p>
+        </div>
+        <div style="background:white; padding:15px; border-radius:8px; text-align:center;">
+          <p style="font-size:12px; color:#666;">Abandonos</p>
+          <p id="stat-abandonos-marketing" style="font-size:24px; font-weight:bold; color:#92400E;">0</p>
+        </div>
+        <div style="background:white; padding:15px; border-radius:8px; text-align:center;">
+          <p style="font-size:12px; color:#666;">Clientes VIP</p>
+          <p id="stat-vip" style="font-size:24px; font-weight:bold; color:#F59E0B;">0</p>
+        </div>
+      </div>
+    </div>
+
     <!-- ABANDONOS -->
     <div style="margin-bottom:30px; padding:20px; background:#FFF7ED; border-radius:10px; border:1px solid #FED7AA;">
       <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:15px;">
@@ -58,6 +92,24 @@
       </div>
     </div>
 
+    <!-- RASTREIO DE PEDIDOS -->
+    <div style="margin-bottom:30px; padding:20px; background:#EFF6FF; border-radius:10px; border:1px solid #BFDBFE;">
+      <h3 style="color:#1E3A8A;">📦 Atualizar Rastreio de Pedido</h3>
+      <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:10px;">
+        <input id="rastreio-pedido-id" placeholder="ID do Pedido" style="flex:1; min-width:150px; padding:10px; border:2px solid #E2E8F0; border-radius:8px;">
+        <input id="rastreio-codigo" placeholder="Código de Rastreio" style="flex:2; min-width:200px; padding:10px; border:2px solid #E2E8F0; border-radius:8px;">
+        <select id="rastreio-status" style="padding:10px; border:2px solid #E2E8F0; border-radius:8px;">
+          <option value="Pendente">Pendente</option>
+          <option value="Processando">Processando</option>
+          <option value="Enviado">Enviado</option>
+          <option value="Em Trânsito">Em Trânsito</option>
+          <option value="Entregue">Entregue</option>
+        </select>
+        <input id="rastreio-observacao" placeholder="Observação" style="flex:2; min-width:200px; padding:10px; border:2px solid #E2E8F0; border-radius:8px;">
+        <button onclick="atualizarRastreio()" class="btn" style="background:#6366F1;">📦 Atualizar</button>
+      </div>
+    </div>
+
     <!-- PRODUTOS -->
     <div class="admin-header">
       <h2>Gerenciar Produtos</h2>
@@ -67,29 +119,68 @@
     <!-- FORM ADICIONAR/EDITAR -->
     <form id="form-produto" class="form-produto">
       <input type="hidden" id="produto-id">
+      
       <input id="nome" placeholder="Nome do Produto" required>
       <input id="preco" type="number" placeholder="Preço KZ" required>
+      
       <select id="categoria">
         <option value="iphone">iPhone</option>
         <option value="tenis">Tênis</option>
         <option value="tshirt">T-Shirt</option>
+        <option value="relogio">Relógio</option>
+        <option value="auricular">Auricular</option>
+        <option value="roteador">Roteador</option>
       </select>
+      
+      <select id="status">
+        <option value="novo">🆕 Novo</option>
+        <option value="recondicionado">🔄 Recondicionado</option>
+         <option value="novo"> </option>
+      </select>
+      
+      <select id="estoque">
+        <option value="disponivel">✅ Disponível Em Stock</option>
+        <option value="indisponivel">🔃 Por Encomendar</option>
+      </select>
+      
+      <input id="frete_luanda" type="number" placeholder="Frete Luanda (KZ)" value="0">
+      <input id="frete_outras" type="number" placeholder="Frete Outras Províncias (KZ)" value="5000">
+      
+      <input id="tempo_entrega" placeholder="Tempo de entrega (ex: 1-2 dias úteis)" value="1-2 dias úteis">
+      
       <div style="grid-column: span 2;">
         <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
-          <input id="imagem" placeholder="URL da Imagem" style="flex:1; min-width:200px;">
-          <div style="display:flex; gap:8px; align-items:center;">
+          <input id="imagem" placeholder="URL Principal" style="flex:1; min-width:200px;">
+          <div style="display:flex; gap:8px;">
             <label class="btn" style="background:#6366F1; padding:10px 15px; cursor:pointer; width:auto; margin:0;">
               📁 Upload
               <input type="file" id="upload-imagem" accept="image/*" style="display:none;">
             </label>
-            <div id="upload-status" style="font-size:14px; color:#666;"></div>
+            <button type="button" onclick="adicionarInputImagem()" class="btn" style="background:#22C55E; width:auto;">+ Imagem</button>
           </div>
         </div>
+        <div id="imagens-container" style="margin-top:10px;"></div>
         <div id="preview-container" style="margin-top:10px; display:none;">
           <img id="preview-imagem" style="max-width:150px; border-radius:8px; border:2px solid #ddd;">
           <button onclick="removerPreview()" style="margin-left:10px; background:red; color:white; border:none; padding:5px 10px; border-radius:5px; cursor:pointer;">×</button>
         </div>
       </div>
+
+      <!-- ESPECIFICAÇÕES TÉCNICAS -->
+      <div style="grid-column: span 2; border:1px solid #ddd; padding:15px; border-radius:8px;">
+        <h4 style="margin-bottom:10px;">📋 Especificações Técnicas</h4>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+          <input id="esp-cor" placeholder="Cor">
+          <input id="esp-memoria" placeholder="Memória (ex: 256GB)">
+          <input id="esp-tamanho" placeholder="Tamanho (ex: 6.1'')">
+          <input id="esp-origem" placeholder="Origem (ex: China)">
+          <input id="esp-material" placeholder="Material">
+          <input id="esp-peso" placeholder="Peso (ex: 187g)">
+          <input id="esp-bateria" placeholder="Bateria (ex: 3274 mAh)">
+          <input id="esp-processador" placeholder="Processador">
+        </div>
+      </div>
+      
       <button type="submit" class="btn">Salvar Produto</button>
     </form>
 
@@ -105,14 +196,14 @@
       <thead>
         <tr>
           <th>Imagem</th>
-          <th>Nome</th>
-          <th>Preço</th>
-          <th>Categoria</th>
+          <th>Nome / Status</th>
+          <th>Preço / Frete</th>
+          <th>Categoria / Entrega</th>
           <th>Ações</th>
         </tr>
       </thead>
       <tbody id="tabela-body">
-        <!-- Produtos vão entrar aqui via JS -->
+        <tr><td colspan="5" style="text-align:center; padding:30px;">Carregando...</td></tr>
       </tbody>
     </table>
   </div>
@@ -126,6 +217,38 @@
         <button onclick="confirmarAcao(true)" class="btn" style="background:#DC2626; flex:1;">Confirmar</button>
         <button onclick="confirmarAcao(false)" class="btn" style="background:#666; flex:1;">Cancelar</button>
       </div>
+    </div>
+  </div>
+
+  <!-- MODAL CAMPANHA -->
+  <div id="modal-campanha" class="modal">
+    <div class="modal-conteudo" style="max-width:600px;">
+      <span class="fechar" onclick="fecharModalCampanha()">&times;</span>
+      <h2>📨 Nova Campanha</h2>
+      <form id="form-campanha">
+        <select id="campanha-lista" style="width:100%;">
+          <option value="1">Todos os Clientes</option>
+          <option value="2">Clientes Ativos</option>
+          <option value="3">Carrinhos Abandonados</option>
+          <option value="4">Newsletter</option>
+          <option value="5">Clientes VIP</option>
+        </select>
+        
+        <input id="campanha-titulo" placeholder="Título da campanha">
+        
+        <select id="campanha-tipo">
+          <option value="email">📧 Email</option>
+          <option value="whatsapp">📱 WhatsApp</option>
+        </select>
+        
+        <textarea id="campanha-mensagem" rows="6" placeholder="Escreva sua mensagem aqui..."></textarea>
+        
+        <div style="display:flex; gap:10px; margin-top:10px; flex-wrap:wrap;">
+          <button type="button" onclick="salvarCampanha(true)" class="btn" style="background:#22C55E;">📨 Enviar Agora</button>
+          <button type="button" onclick="salvarCampanha(false)" class="btn" style="background:#6366F1;">💾 Salvar Rascunho</button>
+          <button type="button" onclick="fecharModalCampanha()" class="btn" style="background:#DC2626;">Cancelar</button>
+        </div>
+      </form>
     </div>
   </div>
 
