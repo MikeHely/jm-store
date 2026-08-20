@@ -27,6 +27,7 @@ document.addEventListener('DOMContentLoaded', async function() {
   await carregarTabela();
   await carregarAbandonos();
   await carregarMarketingStats();
+  await carregarVisitantes();
   
   const form = document.getElementById('form-produto');
   form.addEventListener('submit', salvarProduto);
@@ -70,6 +71,7 @@ function mostrarToast(mensagem, tipo) {
     animation: slideIn 0.3s ease;
     font-weight: bold;
     max-width: 350px;
+    z-index: 9999;
   `;
   toast.textContent = mensagem;
   container.appendChild(toast);
@@ -82,15 +84,18 @@ function mostrarToast(mensagem, tipo) {
 }
 
 function criarToastContainer() {
-  const container = document.createElement('div');
-  container.id = 'toast-container';
-  container.style.cssText = `
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    z-index: 1000;
-  `;
-  document.body.appendChild(container);
+  let container = document.getElementById('toast-container');
+  if (!container) {
+    container = document.createElement('div');
+    container.id = 'toast-container';
+    container.style.cssText = `
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 9999;
+    `;
+    document.body.appendChild(container);
+  }
   return container;
 }
 
@@ -109,6 +114,39 @@ async function carregarDashboard() {
     document.getElementById('stat-usuarios').textContent = data.stats ? data.stats.totalUsuarios : 0;
   } catch (error) {
     console.error('Erro dashboard:', error);
+  }
+}
+
+// ============================================
+// VISITANTES
+// ============================================
+async function carregarVisitantes() {
+  try {
+    const res = await fetch(API_URL + '/api/admin/visitantes', {
+      headers: { 'Authorization': 'Bearer ' + token }
+    });
+    const data = await res.json();
+    
+    document.getElementById('stat-visitas-total').textContent = data.total || 0;
+    document.getElementById('stat-visitas-hoje').textContent = data.hoje || 0;
+    document.getElementById('stat-visitas-unicos').textContent = data.unicos || 0;
+    
+    const container = document.getElementById('ultimas-visitas');
+    if (data.ultimas && data.ultimas.length > 0) {
+      container.innerHTML = data.ultimas.map(function(v) {
+        return `
+          <div style="display:flex; justify-content:space-between; padding:8px; border-bottom:1px solid #eee; font-size:13px;">
+            <span>${v.pagina || '/'}</span>
+            <span style="color:#666;">${new Date(v.data_visita).toLocaleString('pt-PT')}</span>
+            <span style="color:#999; font-size:11px;">${v.user_agent ? v.user_agent.substring(0, 30) + '...' : 'Desconhecido'}</span>
+          </div>
+        `;
+      }).join('');
+    } else {
+      container.innerHTML = '<p style="color:#666; font-size:14px;">Nenhuma visita registrada ainda.</p>';
+    }
+  } catch (error) {
+    console.error('Erro ao carregar visitantes:', error);
   }
 }
 
@@ -281,7 +319,6 @@ function renderizarAbandonos() {
   
   let html = '';
   
-  // FINALIZADOS
   if (finalizados.length > 0) {
     html += '<h4 style="color:#065F46; margin:15px 0 10px;">✅ FINALIZADOS (' + finalizados.length + ')</h4>';
     html += finalizados.map(function(a) {
@@ -338,7 +375,6 @@ function renderizarAbandonos() {
     }).join('');
   }
   
-  // ABANDONADOS
   if (abandonados.length > 0) {
     html += '<h4 style="color:#92400E; margin:15px 0 10px;">🛒 ABANDONADOS (' + abandonados.length + ')</h4>';
     html += abandonados.map(function(a) {
@@ -633,7 +669,6 @@ async function salvarProduto(e) {
   
   var id = document.getElementById('produto-id').value;
   
-  // Coletar especificações
   var especificacoes = {};
   var espCor = document.getElementById('esp-cor').value;
   var espMemoria = document.getElementById('esp-memoria').value;
@@ -653,7 +688,6 @@ async function salvarProduto(e) {
   if (espBateria) especificacoes.bateria = espBateria;
   if (espProcessador) especificacoes.processador = espProcessador;
   
-  // Coletar imagens extras
   var imagensExtras = coletarImagens();
   
   var produto = {
@@ -669,7 +703,6 @@ async function salvarProduto(e) {
     especificacoes: especificacoes
   };
 
-  // Validação
   if (!produto.nome || produto.nome.length < 2) {
     mostrarToast('Nome do produto é obrigatório', 'error');
     return;
@@ -706,7 +739,6 @@ async function salvarProduto(e) {
       var data = await res.json();
       var produtoId = data.id || id;
       
-      // Salvar imagens extras
       if (imagensExtras.length > 0) {
         await fetch(API_URL + '/api/admin/imagens', {
           method: 'POST',
@@ -753,7 +785,6 @@ function editar(produto) {
   document.getElementById('tempo_entrega').value = produto.tempo_entrega || '1-2 dias úteis';
   document.getElementById('imagem').value = produto.imagem;
   
-  // Especificações
   var esp = produto.especificacoes || {};
   document.getElementById('esp-cor').value = esp.cor || '';
   document.getElementById('esp-memoria').value = esp.memoria || '';

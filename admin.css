@@ -315,6 +315,21 @@ header nav button:hover {
   font-weight: bold;
 }
 
+/* ===== VISITANTES ===== */
+#ultimas-visitas {
+  max-height: 200px;
+  overflow-y: auto;
+  margin-top: 10px;
+}
+
+#ultimas-visitas > div {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px;
+  border-bottom: 1px solid #eee;
+  font-size: 13px;
+}
+
 /* ===== RESPONSIVO ===== */
 @media (max-width: 768px) {
   .form-produto {

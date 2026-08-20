@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Painel Admin - JM Store</title>
+  <link rel="icon" type="image/png" href="https://img.icons8.com/color/48/000000/shopping-bag.png">
   <link rel="stylesheet" href="admin.css">
 </head>
 <body>
@@ -42,6 +43,28 @@
       </div>
     </div>
 
+    <!-- ESTATÍSTICAS DE VISITANTES -->
+    <div style="margin-bottom:30px; padding:20px; background:#EEF2FF; border-radius:10px; border:1px solid #C7D2FE;">
+      <h3 style="color:#1E3A8A;">📊 Estatísticas de Visitantes</h3>
+      <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(120px,1fr)); gap:10px; margin-top:10px;">
+        <div style="background:white; padding:15px; border-radius:8px; text-align:center;">
+          <p style="font-size:12px; color:#666;">Total de Visitas</p>
+          <p id="stat-visitas-total" style="font-size:24px; font-weight:bold; color:#1E3A8A;">0</p>
+        </div>
+        <div style="background:white; padding:15px; border-radius:8px; text-align:center;">
+          <p style="font-size:12px; color:#666;">Visitas Hoje</p>
+          <p id="stat-visitas-hoje" style="font-size:24px; font-weight:bold; color:#16A34A;">0</p>
+        </div>
+        <div style="background:white; padding:15px; border-radius:8px; text-align:center;">
+          <p style="font-size:12px; color:#666;">Visitantes Únicos</p>
+          <p id="stat-visitas-unicos" style="font-size:24px; font-weight:bold; color:#F59E0B;">0</p>
+        </div>
+      </div>
+      <div id="ultimas-visitas" style="margin-top:10px; max-height:200px; overflow-y:auto;">
+        <p style="color:#666; font-size:14px;">Carregando últimas visitas...</p>
+      </div>
+    </div>
+
     <!-- MARKETING -->
     <div style="margin-bottom:30px; padding:20px; background:#F0FDF4; border-radius:10px; border:1px solid #86EFAC;">
       <h3 style="color:#065F46;">📧 Marketing e Clientes</h3>
@@ -76,22 +99,6 @@
       </div>
     </div>
 
-    <!-- ABANDONOS -->
-    <div style="margin-bottom:30px; padding:20px; background:#FFF7ED; border-radius:10px; border:1px solid #FED7AA;">
-      <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:15px;">
-        <h3 style="color:#9A3412;">🛒 Registros de Checkout</h3>
-        <div style="display:flex; gap:8px; flex-wrap:wrap;">
-          <button onclick="limparRegistros('abandonados')" class="btn btn-sm" style="background:#F59E0B;">Limpar Abandonos</button>
-          <button onclick="limparRegistros('finalizados')" class="btn btn-sm" style="background:#22C55E;">Limpar Finalizados</button>
-          <button onclick="limparRegistros('todos')" class="btn btn-sm btn-danger">Limpar Todos</button>
-          <button onclick="atualizarLista()" class="btn btn-sm" style="background:#6366F1;">🔄 Atualizar</button>
-        </div>
-      </div>
-      <div id="abandonos-lista">
-        <p style="text-align:center; padding:20px; color:#666;">Carregando...</p>
-      </div>
-    </div>
-
     <!-- RASTREIO DE PEDIDOS -->
     <div style="margin-bottom:30px; padding:20px; background:#EFF6FF; border-radius:10px; border:1px solid #BFDBFE;">
       <h3 style="color:#1E3A8A;">📦 Atualizar Rastreio de Pedido</h3>
@@ -107,6 +114,22 @@
         </select>
         <input id="rastreio-observacao" placeholder="Observação" style="flex:2; min-width:200px; padding:10px; border:2px solid #E2E8F0; border-radius:8px;">
         <button onclick="atualizarRastreio()" class="btn" style="background:#6366F1;">📦 Atualizar</button>
+      </div>
+    </div>
+
+    <!-- ABANDONOS -->
+    <div style="margin-bottom:30px; padding:20px; background:#FFF7ED; border-radius:10px; border:1px solid #FED7AA;">
+      <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:15px;">
+        <h3 style="color:#9A3412;">🛒 Registros de Checkout</h3>
+        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+          <button onclick="limparRegistros('abandonados')" class="btn btn-sm" style="background:#F59E0B;">Limpar Abandonos</button>
+          <button onclick="limparRegistros('finalizados')" class="btn btn-sm" style="background:#22C55E;">Limpar Finalizados</button>
+          <button onclick="limparRegistros('todos')" class="btn btn-sm btn-danger">Limpar Todos</button>
+          <button onclick="atualizarLista()" class="btn btn-sm" style="background:#6366F1;">🔄 Atualizar</button>
+        </div>
+      </div>
+      <div id="abandonos-lista">
+        <p style="text-align:center; padding:20px; color:#666;">Carregando...</p>
       </div>
     </div>
 
@@ -135,12 +158,11 @@
       <select id="status">
         <option value="novo">🆕 Novo</option>
         <option value="recondicionado">🔄 Recondicionado</option>
-         <option value="novo"> </option>
       </select>
       
       <select id="estoque">
-        <option value="disponivel">✅ Disponível Em Stock</option>
-        <option value="indisponivel">🔃 Por Encomendar</option>
+        <option value="disponivel">✅ Disponível</option>
+        <option value="indisponivel">❌ Indisponível</option>
       </select>
       
       <input id="frete_luanda" type="number" placeholder="Frete Luanda (KZ)" value="0">

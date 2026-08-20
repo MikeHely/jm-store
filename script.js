@@ -27,8 +27,12 @@ document.addEventListener('DOMContentLoaded', async function() {
   
   if (usuarioLogado && tokenJM) {
     await carregarCarrinhoServidor();
+    await carregarWishlistStatus();
   }
   atualizarContador();
+  
+  // Registrar visita
+  registrarVisita();
   
   // Event listeners para modais
   document.getElementById('link-cadastro').addEventListener('click', function(e) {
@@ -46,7 +50,29 @@ document.addEventListener('DOMContentLoaded', async function() {
   document.getElementById('senha-login').addEventListener('keypress', function(e) {
     if (e.key === 'Enter') login();
   });
+  
+  document.getElementById('senha-cadastro').addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') cadastrar();
+  });
 });
+
+// ============================================
+// VISITANTES
+// ============================================
+async function registrarVisita() {
+  try {
+    await fetch(API_URL + '/api/visitantes/registrar', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        sessionId: sessionId,
+        pagina: window.location.pathname
+      })
+    });
+  } catch (error) {
+    console.error('Erro ao registrar visita:', error);
+  }
+}
 
 // ============================================
 // CATEGORIAS
@@ -54,6 +80,7 @@ document.addEventListener('DOMContentLoaded', async function() {
 async function carregarCategorias() {
   try {
     const res = await fetch(API_URL + '/api/categorias');
+    if (!res.ok) throw new Error('Erro ao carregar categorias');
     const categorias = await res.json();
     const container = document.getElementById('filtros-categorias');
     container.innerHTML = '<button onclick="filtrar(\'todos\')" class="ativo">Todos</button>';
@@ -99,15 +126,13 @@ function renderizarProdutos() {
   lista.innerHTML = filtrados.map(function(p) {
     const statusIcon = p.status === 'novo' ? '🆕' : '🔄';
     const statusText = p.status === 'novo' ? 'Novo' : 'Recondicionado';
-    const estoqueIcon = p.estoque === 'disponivel' ? '✅' : '📥';
-    const estoqueText = p.estoque === 'disponivel' ? 'Disponível' : 'Por encomendar';
-    
-    // Verificar se produto está na wishlist (será atualizado depois)
+    const estoqueIcon = p.estoque === 'disponivel' ? '✅' : '❌';
+    const estoqueText = p.estoque === 'disponivel' ? 'Disponível' : 'Indisponível';
     const isWishlist = false;
     
     return `
     <div class="produto" data-id="${p.id}">
-      <img src="${p.imagem}" alt="${p.nome}" loading="lazy">
+      <img src="${p.imagem}" alt="${p.nome}" loading="lazy" style="cursor:pointer;" onclick='abrirDetalhes(${JSON.stringify(p)})'>
       <div class="produto-info">
         <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:5px;">
           <span class="tag">${capitalizar(p.categoria)}</span>
@@ -140,11 +165,11 @@ function renderizarProdutos() {
           <button class="btn" onclick='adicionarCarrinho(${JSON.stringify(p)})' 
                   style="${p.estoque === 'indisponivel' ? 'background:#9CA3AF; cursor:not-allowed; flex:2;' : 'flex:2;'}"
                   ${p.estoque === 'indisponivel' ? 'disabled' : ''}>
-            ${p.estoque === 'disponivel' ? '🛒 Adicionar' : '🛒 Encomendar'}
+            ${p.estoque === 'disponivel' ? '🛒 Adicionar' : '❌ Indisponível'}
           </button>
-          <button class="btn" style="background:transparent; border:1px solid #ddd; flex:0; padding:12px 15px; width:auto;" 
+          <button class="btn" style="background:transparent; border:1px solid #ddd; flex:0; padding:12px 15px; width:auto; font-size:20px;" 
                   onclick='toggleWishlist(${p.id})' id="wishlist-btn-${p.id}">
-            ${isWishlist ? '❤️' : '🤍'}
+            🤍
           </button>
           <button class="btn" style="background:#6366F1; flex:0; padding:12px 15px; width:auto;" 
                   onclick='abrirDetalhes(${JSON.stringify(p)})'>
@@ -156,7 +181,6 @@ function renderizarProdutos() {
     `;
   }).join('');
   
-  // Verificar wishlist se usuário logado
   if (usuarioLogado && tokenJM) {
     carregarWishlistStatus();
   }
@@ -175,6 +199,9 @@ function filtrar(cat) {
 // DETALHES DO PRODUTO
 // ============================================
 function abrirDetalhes(produto) {
+  const modalExistente = document.getElementById('modal-detalhes');
+  if (modalExistente) modalExistente.remove();
+  
   const modal = document.createElement('div');
   modal.className = 'modal';
   modal.id = 'modal-detalhes';
@@ -214,7 +241,7 @@ function abrirDetalhes(produto) {
       ${especHtml ? `
         <div style="border-top:1px solid #ddd; padding-top:15px;">
           <h3>📋 Especificações</h3>
-          <table style="width:100%; margin-top:10px;">
+          <table style="width:100%; margin-top:10px; border-collapse:collapse;">
             ${especHtml}
           </table>
         </div>
@@ -243,7 +270,6 @@ function abrirDetalhes(produto) {
   
   document.body.appendChild(modal);
   
-  // Carregar avaliações
   carregarAvaliacoes(produto.id, 'avaliacoes-container-detalhes');
 }
 
@@ -289,11 +315,11 @@ function atualizarUIUsuario() {
 // LOGIN / LOGOUT / CADASTRO
 // ============================================
 async function login() {
-  const email = document.getElementById('email-login').value;
+  const email = document.getElementById('email-login').value.trim();
   const senha = document.getElementById('senha-login').value;
   
   if (!email || !senha) {
-    alert('Preencha todos os campos');
+    mostrarToast('Preencha todos os campos', 'error');
     return;
   }
   
@@ -301,7 +327,7 @@ async function login() {
     const res = await fetch(API_URL + '/api/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email: email, senha: senha })
+      body: JSON.stringify({ email, senha })
     });
     
     const data = await res.json();
@@ -314,41 +340,44 @@ async function login() {
       fecharLogin();
       atualizarUIUsuario();
       await carregarCarrinhoServidor();
+      await carregarWishlistStatus();
       atualizarContador();
-      mostrarToast('Bem-vindo, ' + (data.user.nome || 'Usuário') + '!');
+      mostrarToast('Bem-vindo, ' + (data.user.nome || 'Usuário') + '! 🎉');
     } else {
-      alert(data.error || 'Erro ao fazer login');
+      mostrarToast(data.error || 'Erro ao fazer login', 'error');
     }
   } catch (error) {
-    alert('Erro de conexão');
+    console.error('Erro no login:', error);
+    mostrarToast('Erro de conexão com o servidor', 'error');
   }
 }
 
 function logout() {
   localStorage.removeItem('userJM');
   localStorage.removeItem('tokenJM');
+  localStorage.removeItem('carrinhoJM');
   usuarioLogado = null;
   tokenJM = null;
   carrinho = [];
   atualizarUIUsuario();
   atualizarContador();
-  mostrarToast('Logout realizado');
+  mostrarToast('Logout realizado com sucesso!');
 }
 
 async function cadastrar() {
-  const nome = document.getElementById('nome-cadastro').value;
-  const email = document.getElementById('email-cadastro').value;
-  const telefone = document.getElementById('telefone-cadastro').value;
-  const regiao = document.getElementById('regiao-cadastro').value;
+  const nome = document.getElementById('nome-cadastro').value.trim();
+  const email = document.getElementById('email-cadastro').value.trim();
+  const telefone = document.getElementById('telefone-cadastro').value.trim();
+  const regiao = document.getElementById('regiao-cadastro').value.trim();
   const senha = document.getElementById('senha-cadastro').value;
   
   if (!nome || !email || !telefone || !regiao || !senha) {
-    alert('Preencha todos os campos');
+    mostrarToast('Preencha todos os campos', 'error');
     return;
   }
   
   if (senha.length < 6) {
-    alert('A senha deve ter pelo menos 6 caracteres');
+    mostrarToast('A senha deve ter pelo menos 6 caracteres', 'error');
     return;
   }
   
@@ -356,21 +385,22 @@ async function cadastrar() {
     const res = await fetch(API_URL + '/api/register', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ nome: nome, email: email, telefone: telefone, regiao: regiao, password: senha })
+      body: JSON.stringify({ nome, email, telefone, regiao, password: senha })
     });
     
     const data = await res.json();
     
     if (res.ok) {
-      alert('✅ Cadastro realizado com sucesso! Faça login.');
+      mostrarToast('✅ Cadastro realizado com sucesso! Faça login.');
       fecharCadastro();
       abrirLogin();
       document.getElementById('email-login').value = email;
     } else {
-      alert(data.error || 'Erro ao cadastrar');
+      mostrarToast(data.error || 'Erro ao cadastrar', 'error');
     }
   } catch (error) {
-    alert('Erro de conexão');
+    console.error('Erro no cadastro:', error);
+    mostrarToast('Erro de conexão com o servidor', 'error');
   }
 }
 
@@ -395,7 +425,8 @@ async function abrirPerfil() {
     document.getElementById('modal-perfil').style.display = 'block';
     document.getElementById('perfil-pedidos').style.display = 'none';
   } catch (error) {
-    alert('Erro ao carregar perfil');
+    console.error('Erro ao carregar perfil:', error);
+    mostrarToast('Erro ao carregar perfil', 'error');
   }
 }
 
@@ -420,9 +451,14 @@ function fecharEditarPerfil() {
 }
 
 async function salvarPerfil() {
-  const nome = document.getElementById('editar-nome').value;
-  const telefone = document.getElementById('editar-telefone').value;
-  const regiao = document.getElementById('editar-regiao').value;
+  const nome = document.getElementById('editar-nome').value.trim();
+  const telefone = document.getElementById('editar-telefone').value.trim();
+  const regiao = document.getElementById('editar-regiao').value.trim();
+  
+  if (!nome) {
+    mostrarToast('Nome é obrigatório', 'error');
+    return;
+  }
   
   try {
     const res = await fetch(API_URL + '/api/usuario/perfil', {
@@ -431,22 +467,24 @@ async function salvarPerfil() {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer ' + tokenJM
       },
-      body: JSON.stringify({ nome: nome, telefone: telefone, regiao: regiao })
+      body: JSON.stringify({ nome, telefone, regiao })
     });
     
     if (res.ok) {
       const data = await res.json();
-      usuarioLogado = { ...usuarioLogado, nome: nome, telefone: telefone, regiao: regiao };
+      usuarioLogado = { ...usuarioLogado, nome, telefone, regiao };
       localStorage.setItem('userJM', JSON.stringify(usuarioLogado));
       atualizarUIUsuario();
       fecharEditarPerfil();
       abrirPerfil();
-      mostrarToast('Perfil atualizado!');
+      mostrarToast('Perfil atualizado com sucesso! ✅');
     } else {
-      alert('Erro ao atualizar perfil');
+      const data = await res.json();
+      mostrarToast(data.error || 'Erro ao atualizar perfil', 'error');
     }
   } catch (error) {
-    alert('Erro de conexão');
+    console.error('Erro ao salvar perfil:', error);
+    mostrarToast('Erro de conexão', 'error');
   }
 }
 
@@ -512,7 +550,8 @@ async function verPedidos() {
     
     container.style.display = 'block';
   } catch (error) {
-    alert('Erro ao carregar pedidos');
+    console.error('Erro ao carregar pedidos:', error);
+    mostrarToast('Erro ao carregar pedidos', 'error');
   }
 }
 
@@ -548,9 +587,13 @@ async function verRastreio(pedidoId) {
         </div>
       `;
       document.getElementById('modal-rastreio').style.display = 'block';
+    } else {
+      const data = await res.json();
+      mostrarToast(data.error || 'Erro ao carregar rastreio', 'error');
     }
   } catch (error) {
-    mostrarToast('Erro ao carregar rastreio', 'error');
+    console.error('Erro ao ver rastreio:', error);
+    mostrarToast('Erro de conexão', 'error');
   }
 }
 
@@ -608,12 +651,13 @@ function adicionarCarrinho(produto) {
   localStorage.setItem('carrinhoJM', JSON.stringify(carrinho));
   salvarCarrinhoServidor();
   atualizarContador();
-  mostrarToast(produto.nome + ' adicionado ao carrinho!');
+  mostrarToast(produto.nome + ' adicionado ao carrinho! 🛒');
 }
 
 function atualizarContador() {
   const total = carrinho.reduce(function(s, i) { return s + (i.quantidade || 0); }, 0);
-  document.getElementById('carrinho-count').textContent = total;
+  const counter = document.getElementById('carrinho-count');
+  if (counter) counter.textContent = total;
 }
 
 function abrirCarrinho() {
@@ -697,10 +741,10 @@ async function finalizar() {
     return;
   }
   
-  const endereco = document.getElementById('endereco-entrega').value;
+  const endereco = document.getElementById('endereco-entrega').value.trim();
   const metodo = document.getElementById('metodo-pagamento').value;
   
-  await atualizarStepCheckout('finalizando', { endereco: endereco, metodo: metodo });
+  await atualizarStepCheckout('finalizando', { endereco, metodo });
   
   const btn = document.querySelector('#modal-carrinho .btn-whatsapp');
   const textoOriginal = btn.textContent;
@@ -716,9 +760,9 @@ async function finalizar() {
       },
       body: JSON.stringify({
         itens: carrinho,
-        endereco: endereco,
+        endereco,
         metodo_pagamento: metodo,
-        sessionId: sessionId
+        sessionId
       })
     });
     
@@ -740,6 +784,7 @@ async function finalizar() {
       mostrarToast(data.error || 'Erro ao finalizar', 'error');
     }
   } catch (error) {
+    console.error('Erro ao finalizar:', error);
     mostrarToast('Erro de conexão', 'error');
   } finally {
     btn.textContent = textoOriginal;
@@ -768,7 +813,7 @@ async function registrarCheckout() {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        sessionId: sessionId,
+        sessionId,
         usuario: dadosUsuario,
         itens: carrinho
       })
@@ -783,7 +828,7 @@ async function atualizarStepCheckout(step, dados) {
     await fetch(API_URL + '/api/checkout/step', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ sessionId: sessionId, step: step, dados: dados || null })
+      body: JSON.stringify({ sessionId, step, dados: dados || null })
     });
   } catch (error) {
     console.error('Erro atualizar step:', error);
@@ -813,8 +858,8 @@ async function enviarAvaliacao() {
   }
   
   const nota = document.getElementById('avaliacao-nota').value;
-  const titulo = document.getElementById('avaliacao-titulo').value;
-  const comentario = document.getElementById('avaliacao-comentario').value;
+  const titulo = document.getElementById('avaliacao-titulo').value.trim();
+  const comentario = document.getElementById('avaliacao-comentario').value.trim();
   
   if (!nota) {
     mostrarToast('Selecione uma nota!', 'error');
@@ -831,8 +876,8 @@ async function enviarAvaliacao() {
       body: JSON.stringify({ 
         produto_id: produtoAtualAvaliacao, 
         nota: Number(nota), 
-        titulo: titulo, 
-        comentario: comentario 
+        titulo, 
+        comentario 
       })
     });
     
@@ -845,6 +890,7 @@ async function enviarAvaliacao() {
       mostrarToast(data.error || 'Erro ao enviar avaliação', 'error');
     }
   } catch (error) {
+    console.error('Erro ao enviar avaliação:', error);
     mostrarToast('Erro de conexão', 'error');
   }
 }
@@ -895,7 +941,6 @@ async function toggleWishlist(produtoId) {
     const btn = document.getElementById('wishlist-btn-' + produtoId);
     if (!btn) return;
     
-    // Verificar se já está na wishlist
     const resCheck = await fetch(API_URL + '/api/wishlist', {
       headers: { 'Authorization': 'Bearer ' + tokenJM }
     });
@@ -909,7 +954,7 @@ async function toggleWishlist(produtoId) {
       });
       if (res.ok) {
         btn.textContent = '🤍';
-        mostrarToast('Removido da wishlist ❤️');
+        mostrarToast('Removido da wishlist 💔');
       }
     } else {
       const res = await fetch(API_URL + '/api/wishlist', {
@@ -926,6 +971,7 @@ async function toggleWishlist(produtoId) {
       }
     }
   } catch (error) {
+    console.error('Erro ao alternar wishlist:', error);
     mostrarToast('Erro de conexão', 'error');
   }
 }
@@ -983,6 +1029,7 @@ async function abrirWishlist() {
     
     document.getElementById('modal-wishlist').style.display = 'block';
   } catch (error) {
+    console.error('Erro ao abrir wishlist:', error);
     mostrarToast('Erro ao carregar wishlist', 'error');
   }
 }
@@ -995,8 +1042,8 @@ function fecharWishlist() {
 // NEWSLETTER
 // ============================================
 async function inscricaoNewsletter() {
-  const email = document.getElementById('newsletter-email').value;
-  const nome = document.getElementById('newsletter-nome').value;
+  const email = document.getElementById('newsletter-email').value.trim();
+  const nome = document.getElementById('newsletter-nome').value.trim();
   
   if (!email) {
     mostrarToast('Digite seu email!', 'error');
@@ -1007,7 +1054,7 @@ async function inscricaoNewsletter() {
     const res = await fetch(API_URL + '/api/newsletter', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email: email, nome: nome })
+      body: JSON.stringify({ email, nome })
     });
     
     if (res.ok) {
@@ -1021,6 +1068,7 @@ async function inscricaoNewsletter() {
       mostrarToast(data.error || 'Erro na inscrição', 'error');
     }
   } catch (error) {
+    console.error('Erro na newsletter:', error);
     mostrarToast('Erro de conexão', 'error');
   }
 }
@@ -1031,10 +1079,15 @@ async function inscricaoNewsletter() {
 async function carregarFAQ() {
   try {
     const res = await fetch(API_URL + '/api/faq');
+    if (!res.ok) throw new Error('Erro ao carregar FAQ');
     const faqs = await res.json();
     renderizarFAQ(faqs);
   } catch (error) {
     console.error('Erro ao carregar FAQ:', error);
+    const container = document.getElementById('faq-container');
+    if (container) {
+      container.innerHTML = '<p style="color:#666; text-align:center;">Erro ao carregar perguntas. Tente novamente.</p>';
+    }
   }
 }
 
@@ -1042,7 +1095,7 @@ function renderizarFAQ(faqs) {
   const container = document.getElementById('faq-container');
   if (!container) return;
   
-  if (faqs.length === 0) {
+  if (!faqs || faqs.length === 0) {
     container.innerHTML = '<p style="text-align:center; color:#666;">Nenhuma pergunta frequente cadastrada.</p>';
     return;
   }
@@ -1105,6 +1158,7 @@ function mostrarToast(mensagem, tipo) {
     animation: slideIn 0.3s ease;
     font-weight: bold;
     max-width: 350px;
+    z-index: 9999;
   `;
   toast.textContent = mensagem;
   container.appendChild(toast);
@@ -1117,15 +1171,18 @@ function mostrarToast(mensagem, tipo) {
 }
 
 function criarToastContainer() {
-  const container = document.createElement('div');
-  container.id = 'toast-container';
-  container.style.cssText = `
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    z-index: 1000;
-  `;
-  document.body.appendChild(container);
+  let container = document.getElementById('toast-container');
+  if (!container) {
+    container = document.createElement('div');
+    container.id = 'toast-container';
+    container.style.cssText = `
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 9999;
+    `;
+    document.body.appendChild(container);
+  }
   return container;
 }
 
