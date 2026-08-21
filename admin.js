@@ -6,6 +6,9 @@ const API_URL = 'https://jm-server.onrender.com';
 const usuarioLogado = JSON.parse(localStorage.getItem('userJM'));
 const token = localStorage.getItem('tokenJM');
 
+console.log('📡 API_URL:', API_URL);
+console.log('👑 Admin:', usuarioLogado);
+
 if (!usuarioLogado || !token || !usuarioLogado.is_admin) {
   alert('Acesso restrito. Faça login como administrador.');
   window.location.href = 'index.html';
@@ -14,15 +17,13 @@ if (!usuarioLogado || !token || !usuarioLogado.is_admin) {
 let filtroAdmin = 'todos';
 let todosProdutos = [];
 let registrosData = [];
-let imagensUpload = [];
-
-console.log('📡 API_URL:', API_URL);
-console.log('👑 Admin:', usuarioLogado);
 
 // ============================================
 // INICIALIZAÇÃO
 // ============================================
 document.addEventListener('DOMContentLoaded', async function() {
+  console.log('📊 Carregando admin...');
+  
   await carregarDashboard();
   await carregarTabela();
   await carregarAbandonos();
@@ -30,22 +31,32 @@ document.addEventListener('DOMContentLoaded', async function() {
   await carregarVisitantes();
   
   const form = document.getElementById('form-produto');
-  form.addEventListener('submit', salvarProduto);
+  if (form) {
+    form.addEventListener('submit', salvarProduto);
+  }
   
-  document.getElementById('upload-imagem').addEventListener('change', fazerUpload);
+  const uploadInput = document.getElementById('upload-imagem');
+  if (uploadInput) {
+    uploadInput.addEventListener('change', fazerUpload);
+  }
   
-  document.getElementById('imagem').addEventListener('input', function(e) {
-    const url = e.target.value.trim();
-    const container = document.getElementById('preview-container');
-    const img = document.getElementById('preview-imagem');
-    
-    if (url && url.startsWith('http')) {
-      img.src = url;
-      container.style.display = 'block';
-    } else {
-      container.style.display = 'none';
-    }
-  });
+  const imagemInput = document.getElementById('imagem');
+  if (imagemInput) {
+    imagemInput.addEventListener('input', function(e) {
+      const url = e.target.value.trim();
+      const container = document.getElementById('preview-container');
+      const img = document.getElementById('preview-imagem');
+      
+      if (url && url.startsWith('http')) {
+        if (img) img.src = url;
+        if (container) container.style.display = 'block';
+      } else {
+        if (container) container.style.display = 'none';
+      }
+    });
+  }
+  
+  console.log('✅ Admin carregado com sucesso!');
 });
 
 // ============================================
@@ -109,9 +120,13 @@ async function carregarDashboard() {
     });
     const data = await res.json();
     
-    document.getElementById('stat-produtos').textContent = data.stats ? data.stats.totalProdutos : 0;
-    document.getElementById('stat-pedidos').textContent = data.stats ? data.stats.totalPedidos : 0;
-    document.getElementById('stat-usuarios').textContent = data.stats ? data.stats.totalUsuarios : 0;
+    const statProdutos = document.getElementById('stat-produtos');
+    const statPedidos = document.getElementById('stat-pedidos');
+    const statUsuarios = document.getElementById('stat-usuarios');
+    
+    if (statProdutos) statProdutos.textContent = data.stats ? data.stats.totalProdutos : 0;
+    if (statPedidos) statPedidos.textContent = data.stats ? data.stats.totalPedidos : 0;
+    if (statUsuarios) statUsuarios.textContent = data.stats ? data.stats.totalUsuarios : 0;
   } catch (error) {
     console.error('Erro dashboard:', error);
   }
@@ -127,23 +142,29 @@ async function carregarVisitantes() {
     });
     const data = await res.json();
     
-    document.getElementById('stat-visitas-total').textContent = data.total || 0;
-    document.getElementById('stat-visitas-hoje').textContent = data.hoje || 0;
-    document.getElementById('stat-visitas-unicos').textContent = data.unicos || 0;
-    
+    const totalEl = document.getElementById('stat-visitas-total');
+    const hojeEl = document.getElementById('stat-visitas-hoje');
+    const unicosEl = document.getElementById('stat-visitas-unicos');
     const container = document.getElementById('ultimas-visitas');
-    if (data.ultimas && data.ultimas.length > 0) {
-      container.innerHTML = data.ultimas.map(function(v) {
-        return `
-          <div style="display:flex; justify-content:space-between; padding:8px; border-bottom:1px solid #eee; font-size:13px;">
-            <span>${v.pagina || '/'}</span>
-            <span style="color:#666;">${new Date(v.data_visita).toLocaleString('pt-PT')}</span>
-            <span style="color:#999; font-size:11px;">${v.user_agent ? v.user_agent.substring(0, 30) + '...' : 'Desconhecido'}</span>
-          </div>
-        `;
-      }).join('');
-    } else {
-      container.innerHTML = '<p style="color:#666; font-size:14px;">Nenhuma visita registrada ainda.</p>';
+    
+    if (totalEl) totalEl.textContent = data.total || 0;
+    if (hojeEl) hojeEl.textContent = data.hoje || 0;
+    if (unicosEl) unicosEl.textContent = data.unicos || 0;
+    
+    if (container) {
+      if (data.ultimas && data.ultimas.length > 0) {
+        container.innerHTML = data.ultimas.map(function(v) {
+          return `
+            <div style="display:flex; justify-content:space-between; padding:8px; border-bottom:1px solid #eee; font-size:13px;">
+              <span>${v.pagina || '/'}</span>
+              <span style="color:#666;">${new Date(v.data_visita).toLocaleString('pt-PT')}</span>
+              <span style="color:#999; font-size:11px;">${v.user_agent ? v.user_agent.substring(0, 30) + '...' : 'Desconhecido'}</span>
+            </div>
+          `;
+        }).join('');
+      } else {
+        container.innerHTML = '<p style="color:#666; font-size:14px;">Nenhuma visita registrada ainda.</p>';
+      }
     }
   } catch (error) {
     console.error('Erro ao carregar visitantes:', error);
@@ -165,10 +186,15 @@ async function carregarMarketingStats() {
     const abandonos = contatos.filter(function(c) { return c.origem === 'abandono'; }).length;
     const vip = contatos.filter(function(c) { return c.total_compras >= 5 || c.total_gasto >= 500000; }).length;
     
-    document.getElementById('stat-total-clientes').textContent = total;
-    document.getElementById('stat-newsletter').textContent = newsletter;
-    document.getElementById('stat-abandonos-marketing').textContent = abandonos;
-    document.getElementById('stat-vip').textContent = vip;
+    const totalClientes = document.getElementById('stat-total-clientes');
+    const statNewsletter = document.getElementById('stat-newsletter');
+    const statAbandonos = document.getElementById('stat-abandonos-marketing');
+    const statVip = document.getElementById('stat-vip');
+    
+    if (totalClientes) totalClientes.textContent = total;
+    if (statNewsletter) statNewsletter.textContent = newsletter;
+    if (statAbandonos) statAbandonos.textContent = abandonos;
+    if (statVip) statVip.textContent = vip;
   } catch (error) {
     console.error('Erro carregar stats marketing:', error);
   }
@@ -195,20 +221,27 @@ async function exportarContatos() {
 }
 
 function abrirModalCampanha() {
-  document.getElementById('modal-campanha').style.display = 'block';
+  const modal = document.getElementById('modal-campanha');
+  if (modal) modal.style.display = 'block';
 }
 
 function fecharModalCampanha() {
-  document.getElementById('modal-campanha').style.display = 'none';
+  const modal = document.getElementById('modal-campanha');
+  if (modal) modal.style.display = 'none';
 }
 
 async function salvarCampanha(enviarAgora) {
-  const lista_id = document.getElementById('campanha-lista').value;
-  const titulo = document.getElementById('campanha-titulo').value;
-  const tipo = document.getElementById('campanha-tipo').value;
-  const mensagem = document.getElementById('campanha-mensagem').value;
+  const listaId = document.getElementById('campanha-lista');
+  const titulo = document.getElementById('campanha-titulo');
+  const tipo = document.getElementById('campanha-tipo');
+  const mensagem = document.getElementById('campanha-mensagem');
   
-  if (!titulo || !mensagem) {
+  const listaIdValue = listaId ? listaId.value : '1';
+  const tituloValue = titulo ? titulo.value.trim() : '';
+  const tipoValue = tipo ? tipo.value : 'email';
+  const mensagemValue = mensagem ? mensagem.value.trim() : '';
+  
+  if (!tituloValue || !mensagemValue) {
     mostrarToast('Preencha título e mensagem!', 'error');
     return;
   }
@@ -221,10 +254,10 @@ async function salvarCampanha(enviarAgora) {
         'Authorization': 'Bearer ' + token
       },
       body: JSON.stringify({
-        lista_id: Number(lista_id),
-        titulo: titulo,
-        mensagem: mensagem,
-        tipo: tipo,
+        lista_id: Number(listaIdValue),
+        titulo: tituloValue,
+        mensagem: mensagemValue,
+        tipo: tipoValue,
         enviar_agora: enviarAgora
       })
     });
@@ -233,7 +266,8 @@ async function salvarCampanha(enviarAgora) {
       const data = await res.json();
       mostrarToast(enviarAgora ? '📨 Campanha enviada!' : '💾 Campanha salva!');
       fecharModalCampanha();
-      document.getElementById('form-campanha').reset();
+      if (titulo) titulo.value = '';
+      if (mensagem) mensagem.value = '';
     } else {
       const data = await res.json();
       mostrarToast(data.error || 'Erro ao criar campanha', 'error');
@@ -247,36 +281,41 @@ async function salvarCampanha(enviarAgora) {
 // RASTREIO
 // ============================================
 async function atualizarRastreio() {
-  const pedidoId = document.getElementById('rastreio-pedido-id').value;
-  const codigo = document.getElementById('rastreio-codigo').value;
-  const status = document.getElementById('rastreio-status').value;
-  const observacao = document.getElementById('rastreio-observacao').value;
+  const pedidoId = document.getElementById('rastreio-pedido-id');
+  const codigo = document.getElementById('rastreio-codigo');
+  const status = document.getElementById('rastreio-status');
+  const observacao = document.getElementById('rastreio-observacao');
   
-  if (!pedidoId) {
+  const pedidoIdValue = pedidoId ? pedidoId.value.trim() : '';
+  const codigoValue = codigo ? codigo.value.trim() : '';
+  const statusValue = status ? status.value : 'Pendente';
+  const observacaoValue = observacao ? observacao.value.trim() : '';
+  
+  if (!pedidoIdValue) {
     mostrarToast('Digite o ID do pedido!', 'error');
     return;
   }
   
   try {
-    const res = await fetch(API_URL + '/api/admin/pedidos/' + pedidoId + '/rastreio', {
+    const res = await fetch(API_URL + '/api/admin/pedidos/' + pedidoIdValue + '/rastreio', {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer ' + token
       },
       body: JSON.stringify({
-        codigo_rastreio: codigo || null,
+        codigo_rastreio: codigoValue || null,
         transportadora: 'JM Express',
-        status: status,
-        observacao: observacao || ''
+        status: statusValue,
+        observacao: observacaoValue || ''
       })
     });
     
     if (res.ok) {
       mostrarToast('✅ Rastreio atualizado com sucesso!');
-      document.getElementById('rastreio-pedido-id').value = '';
-      document.getElementById('rastreio-codigo').value = '';
-      document.getElementById('rastreio-observacao').value = '';
+      if (pedidoId) pedidoId.value = '';
+      if (codigo) codigo.value = '';
+      if (observacao) observacao.value = '';
     } else {
       const data = await res.json();
       mostrarToast(data.error || 'Erro ao atualizar rastreio', 'error');
@@ -297,8 +336,11 @@ async function carregarAbandonos() {
     const data = await res.json();
     registrosData = data;
     
-    document.getElementById('stat-abandonos').textContent = data.total_abandonos || 0;
-    document.getElementById('stat-finalizados').textContent = data.total_finalizados || 0;
+    const statAbandonos = document.getElementById('stat-abandonos');
+    const statFinalizados = document.getElementById('stat-finalizados');
+    
+    if (statAbandonos) statAbandonos.textContent = data.total_abandonos || 0;
+    if (statFinalizados) statFinalizados.textContent = data.total_finalizados || 0;
     
     renderizarAbandonos();
   } catch (error) {
@@ -308,6 +350,7 @@ async function carregarAbandonos() {
 
 function renderizarAbandonos() {
   const container = document.getElementById('abandonos-lista');
+  if (!container) return;
   
   const abandonados = registrosData.abandonos || [];
   const finalizados = registrosData.finalizados || [];
@@ -319,6 +362,7 @@ function renderizarAbandonos() {
   
   let html = '';
   
+  // FINALIZADOS
   if (finalizados.length > 0) {
     html += '<h4 style="color:#065F46; margin:15px 0 10px;">✅ FINALIZADOS (' + finalizados.length + ')</h4>';
     html += finalizados.map(function(a) {
@@ -375,6 +419,7 @@ function renderizarAbandonos() {
     }).join('');
   }
   
+  // ABANDONADOS
   if (abandonados.length > 0) {
     html += '<h4 style="color:#92400E; margin:15px 0 10px;">🛒 ABANDONADOS (' + abandonados.length + ')</h4>';
     html += abandonados.map(function(a) {
@@ -465,11 +510,9 @@ async function notificarWhatsApp(sessionId) {
 // EXCLUIR REGISTRO
 // ============================================
 function excluirRegistro(sessionId) {
-  mostrarConfirmacao(
-    'Excluir Registro',
-    'Tem certeza que deseja excluir este registro?',
-    function() { confirmarExcluirRegistro(sessionId); }
-  );
+  if (confirm('Tem certeza que deseja excluir este registro?')) {
+    confirmarExcluirRegistro(sessionId);
+  }
 }
 
 async function confirmarExcluirRegistro(sessionId) {
@@ -494,17 +537,15 @@ async function confirmarExcluirRegistro(sessionId) {
 // LIMPAR REGISTROS
 // ============================================
 function limparRegistros(tipo) {
-  var mensagens = {
+  const mensagens = {
     'todos': 'Deseja limpar TODOS os registros?',
     'abandonados': 'Deseja limpar apenas os ABANDONADOS?',
     'finalizados': 'Deseja limpar apenas os FINALIZADOS?'
   };
   
-  mostrarConfirmacao(
-    'Limpar Registros',
-    mensagens[tipo] || 'Deseja limpar os registros?',
-    function() { confirmarLimparRegistros(tipo); }
-  );
+  if (confirm(mensagens[tipo] || 'Deseja limpar os registros?')) {
+    confirmarLimparRegistros(tipo);
+  }
 }
 
 async function confirmarLimparRegistros(tipo) {
@@ -538,10 +579,10 @@ function atualizarLista() {
 // ============================================
 // MODAL CONFIRMAÇÃO
 // ============================================
-var acaoConfirmada = null;
+let acaoConfirmada = null;
 
 function mostrarConfirmacao(titulo, mensagem, callback) {
-  var modal = document.getElementById('modal-confirmacao');
+  let modal = document.getElementById('modal-confirmacao');
   if (!modal) {
     modal = document.createElement('div');
     modal.id = 'modal-confirmacao';
@@ -566,7 +607,7 @@ function mostrarConfirmacao(titulo, mensagem, callback) {
 }
 
 function confirmarAcao(confirmado) {
-  var modal = document.getElementById('modal-confirmacao');
+  const modal = document.getElementById('modal-confirmacao');
   modal.style.display = 'none';
   if (confirmado && acaoConfirmada) {
     acaoConfirmada();
@@ -592,7 +633,7 @@ async function carregarTabela() {
 }
 
 function renderizarTabela() {
-  var produtos = todosProdutos;
+  let produtos = todosProdutos;
   
   if (filtroAdmin === 'visiveis') {
     produtos = produtos.filter(function(p) { return p.visivel !== false; });
@@ -600,7 +641,8 @@ function renderizarTabela() {
     produtos = produtos.filter(function(p) { return p.visivel === false; });
   }
   
-  var tbody = document.getElementById('tabela-body');
+  const tbody = document.getElementById('tabela-body');
+  if (!tbody) return;
   
   if (produtos.length === 0) {
     tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:30px;">Nenhum produto encontrado</td></tr>';
@@ -610,7 +652,8 @@ function renderizarTabela() {
   tbody.innerHTML = produtos.map(function(p) {
     return `
       <tr style="${!p.visivel ? 'opacity:0.5; background:#F1F5F9;' : ''}">
-        <td><img src="${p.imagem}" alt="${p.nome}" style="width:50px; height:50px; object-fit:cover; border-radius:5px;"></td>
+        <td><img src="${p.imagem || 'https://via.placeholder.com/50x50/1E3A8A/FFFFFF?text=JM'}" alt="${p.nome}" style="width:50px; height:50px; object-fit:cover; border-radius:5px;"
+             onerror="this.src='https://via.placeholder.com/50x50/1E3A8A/FFFFFF?text=JM'"></td>
         <td>
           ${p.nome}
           ${!p.visivel ? '🔒' : ''}
@@ -667,30 +710,22 @@ function authHeaders() {
 async function salvarProduto(e) {
   e.preventDefault();
   
-  var id = document.getElementById('produto-id').value;
+  const id = document.getElementById('produto-id').value;
   
-  var especificacoes = {};
-  var espCor = document.getElementById('esp-cor').value;
-  var espMemoria = document.getElementById('esp-memoria').value;
-  var espTamanho = document.getElementById('esp-tamanho').value;
-  var espOrigem = document.getElementById('esp-origem').value;
-  var espMaterial = document.getElementById('esp-material').value;
-  var espPeso = document.getElementById('esp-peso').value;
-  var espBateria = document.getElementById('esp-bateria').value;
-  var espProcessador = document.getElementById('esp-processador').value;
+  // Coletar especificações
+  const especificacoes = {};
+  const campos = ['cor', 'memoria', 'tamanho', 'origem', 'material', 'peso', 'bateria', 'processador'];
+  campos.forEach(function(campo) {
+    const el = document.getElementById('esp-' + campo);
+    if (el && el.value.trim()) {
+      especificacoes[campo] = el.value.trim();
+    }
+  });
   
-  if (espCor) especificacoes.cor = espCor;
-  if (espMemoria) especificacoes.memoria = espMemoria;
-  if (espTamanho) especificacoes.tamanho = espTamanho;
-  if (espOrigem) especificacoes.origem = espOrigem;
-  if (espMaterial) especificacoes.material = espMaterial;
-  if (espPeso) especificacoes.peso = espPeso;
-  if (espBateria) especificacoes.bateria = espBateria;
-  if (espProcessador) especificacoes.processador = espProcessador;
+  // Coletar imagens extras
+  const imagensExtras = coletarImagens();
   
-  var imagensExtras = coletarImagens();
-  
-  var produto = {
+  const produto = {
     nome: document.getElementById('nome').value.trim(),
     preco: Number(document.getElementById('preco').value),
     categoria: document.getElementById('categoria').value,
@@ -703,6 +738,7 @@ async function salvarProduto(e) {
     especificacoes: especificacoes
   };
 
+  // Validação
   if (!produto.nome || produto.nome.length < 2) {
     mostrarToast('Nome do produto é obrigatório', 'error');
     return;
@@ -716,28 +752,30 @@ async function salvarProduto(e) {
     return;
   }
 
-  var btn = document.querySelector('.form-produto .btn');
-  var textoOriginal = btn.textContent;
-  btn.textContent = '⏳ Salvando...';
-  btn.disabled = true;
+  const btn = document.querySelector('.form-produto .btn');
+  const textoOriginal = btn ? btn.textContent : 'Salvar';
+  if (btn) {
+    btn.textContent = '⏳ Salvando...';
+    btn.disabled = true;
+  }
 
   try {
-    var url = API_URL + '/api/admin/produtos';
-    var method = 'POST';
+    let url = API_URL + '/api/admin/produtos';
+    let method = 'POST';
     if (id) {
       url = API_URL + '/api/admin/produtos/' + id;
       method = 'PUT';
     }
 
-    var res = await fetch(url, {
+    const res = await fetch(url, {
       method: method,
       headers: authHeaders(),
       body: JSON.stringify(produto)
     });
 
     if (res.ok) {
-      var data = await res.json();
-      var produtoId = data.id || id;
+      const data = await res.json();
+      const produtoId = data.id || id;
       
       if (imagensExtras.length > 0) {
         await fetch(API_URL + '/api/admin/imagens', {
@@ -761,15 +799,17 @@ async function salvarProduto(e) {
       mostrarToast('Sessão expirada. Faça login novamente.', 'error');
       setTimeout(logout, 1500);
     } else {
-      var data = await res.json();
+      const data = await res.json();
       mostrarToast(data.error || 'Erro ao salvar', 'error');
     }
   } catch (error) {
     console.error('Erro:', error);
     mostrarToast('Erro de conexão', 'error');
   } finally {
-    btn.textContent = textoOriginal;
-    btn.disabled = false;
+    if (btn) {
+      btn.textContent = textoOriginal;
+      btn.disabled = false;
+    }
   }
 }
 
@@ -785,19 +825,19 @@ function editar(produto) {
   document.getElementById('tempo_entrega').value = produto.tempo_entrega || '1-2 dias úteis';
   document.getElementById('imagem').value = produto.imagem;
   
-  var esp = produto.especificacoes || {};
-  document.getElementById('esp-cor').value = esp.cor || '';
-  document.getElementById('esp-memoria').value = esp.memoria || '';
-  document.getElementById('esp-tamanho').value = esp.tamanho || '';
-  document.getElementById('esp-origem').value = esp.origem || '';
-  document.getElementById('esp-material').value = esp.material || '';
-  document.getElementById('esp-peso').value = esp.peso || '';
-  document.getElementById('esp-bateria').value = esp.bateria || '';
-  document.getElementById('esp-processador').value = esp.processador || '';
+  const esp = produto.especificacoes || {};
+  const campos = ['cor', 'memoria', 'tamanho', 'origem', 'material', 'peso', 'bateria', 'processador'];
+  campos.forEach(function(campo) {
+    const el = document.getElementById('esp-' + campo);
+    if (el) el.value = esp[campo] || '';
+  });
   
-  var preview = document.getElementById('preview-imagem');
-  preview.src = produto.imagem;
-  document.getElementById('preview-container').style.display = 'block';
+  const preview = document.getElementById('preview-imagem');
+  if (preview) {
+    preview.src = produto.imagem;
+    const container = document.getElementById('preview-container');
+    if (container) container.style.display = 'block';
+  }
   
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
@@ -805,17 +845,23 @@ function editar(produto) {
 function abrirModalNovo() {
   document.getElementById('form-produto').reset();
   document.getElementById('produto-id').value = '';
-  document.getElementById('preview-container').style.display = 'none';
-  document.getElementById('imagens-container').innerHTML = '';
-  ['esp-cor', 'esp-memoria', 'esp-tamanho', 'esp-origem', 'esp-material', 'esp-peso', 'esp-bateria', 'esp-processador'].forEach(function(id) {
-    document.getElementById(id).value = '';
+  const previewContainer = document.getElementById('preview-container');
+  if (previewContainer) previewContainer.style.display = 'none';
+  const imagensContainer = document.getElementById('imagens-container');
+  if (imagensContainer) imagensContainer.innerHTML = '';
+  
+  const campos = ['cor', 'memoria', 'tamanho', 'origem', 'material', 'peso', 'bateria', 'processador'];
+  campos.forEach(function(campo) {
+    const el = document.getElementById('esp-' + campo);
+    if (el) el.value = '';
   });
+  
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
 async function alternarVisibilidade(id, novoEstado) {
   try {
-    var res = await fetch(API_URL + '/api/admin/produtos/' + id + '/visibilidade', {
+    const res = await fetch(API_URL + '/api/admin/produtos/' + id + '/visibilidade', {
       method: 'PATCH',
       headers: authHeaders(),
       body: JSON.stringify({ visivel: novoEstado })
@@ -826,7 +872,7 @@ async function alternarVisibilidade(id, novoEstado) {
       await carregarTabela();
       await carregarDashboard();
     } else {
-      var data = await res.json();
+      const data = await res.json();
       mostrarToast(data.error || 'Erro ao alterar visibilidade', 'error');
     }
   } catch (error) {
@@ -845,7 +891,7 @@ function confirmarExcluirProduto(id, nome) {
 
 async function deletarProduto(id) {
   try {
-    var res = await fetch(API_URL + '/api/admin/produtos/' + id, {
+    const res = await fetch(API_URL + '/api/admin/produtos/' + id, {
       method: 'DELETE',
       headers: authHeaders()
     });
@@ -858,7 +904,7 @@ async function deletarProduto(id) {
       mostrarToast('Sessão expirada. Faça login novamente.', 'error');
       setTimeout(logout, 1500);
     } else {
-      var data = await res.json();
+      const data = await res.json();
       mostrarToast(data.error || 'Erro ao excluir', 'error');
     }
   } catch (error) {
@@ -871,8 +917,10 @@ async function deletarProduto(id) {
 // IMAGENS
 // ============================================
 function adicionarInputImagem() {
-  var container = document.getElementById('imagens-container');
-  var div = document.createElement('div');
+  const container = document.getElementById('imagens-container');
+  if (!container) return;
+  
+  const div = document.createElement('div');
   div.className = 'imagem-input';
   div.style.cssText = 'display:flex; gap:10px; margin-bottom:10px;';
   div.innerHTML = `
@@ -883,16 +931,16 @@ function adicionarInputImagem() {
 }
 
 function removerInputImagem(btn) {
-  btn.parentElement.remove();
+  if (btn) btn.parentElement.remove();
 }
 
 function coletarImagens() {
-  var inputs = document.querySelectorAll('#imagens-container input');
-  var urls = [];
-  for (var i = 0; i < inputs.length; i++) {
-    var val = inputs[i].value.trim();
+  const inputs = document.querySelectorAll('#imagens-container input');
+  const urls = [];
+  inputs.forEach(function(input) {
+    const val = input.value.trim();
     if (val) urls.push(val);
-  }
+  });
   return urls;
 }
 
@@ -900,7 +948,7 @@ function coletarImagens() {
 // UPLOAD
 // ============================================
 async function fazerUpload(e) {
-  var file = e.target.files[0];
+  const file = e.target.files[0];
   if (!file) return;
 
   if (!file.type.startsWith('image/')) {
@@ -912,39 +960,49 @@ async function fazerUpload(e) {
     return;
   }
 
-  var status = document.getElementById('upload-status');
-  status.textContent = '⏳ Enviando...';
-  status.style.color = '#F59E0B';
+  const status = document.getElementById('upload-status');
+  if (status) {
+    status.textContent = '⏳ Enviando...';
+    status.style.color = '#F59E0B';
+  }
 
-  var formData = new FormData();
+  const formData = new FormData();
   formData.append('imagem', file);
 
   try {
-    var res = await fetch(API_URL + '/api/admin/upload', {
+    const res = await fetch(API_URL + '/api/admin/upload', {
       method: 'POST',
       headers: { 'Authorization': 'Bearer ' + token },
       body: formData
     });
 
-    var data = await res.json();
+    const data = await res.json();
 
     if (res.ok && data.url) {
       document.getElementById('imagem').value = data.url;
-      document.getElementById('preview-imagem').src = data.url;
-      document.getElementById('preview-container').style.display = 'block';
+      const preview = document.getElementById('preview-imagem');
+      if (preview) preview.src = data.url;
+      const container = document.getElementById('preview-container');
+      if (container) container.style.display = 'block';
       
-      status.textContent = '✅ Imagem enviada!';
-      status.style.color = '#16A34A';
+      if (status) {
+        status.textContent = '✅ Imagem enviada!';
+        status.style.color = '#16A34A';
+      }
       mostrarToast('Imagem enviada com sucesso!');
     } else {
-      status.textContent = '❌ Erro no upload';
-      status.style.color = '#DC2626';
+      if (status) {
+        status.textContent = '❌ Erro no upload';
+        status.style.color = '#DC2626';
+      }
       mostrarToast(data.error || 'Erro ao enviar', 'error');
     }
   } catch (error) {
     console.error('Erro:', error);
-    status.textContent = '❌ Erro de conexão';
-    status.style.color = '#DC2626';
+    if (status) {
+      status.textContent = '❌ Erro de conexão';
+      status.style.color = '#DC2626';
+    }
     mostrarToast('Erro ao enviar imagem', 'error');
   }
 
@@ -952,7 +1010,8 @@ async function fazerUpload(e) {
 }
 
 function removerPreview() {
-  document.getElementById('preview-container').style.display = 'none';
+  const container = document.getElementById('preview-container');
+  if (container) container.style.display = 'none';
   document.getElementById('imagem').value = '';
 }
 
