@@ -914,7 +914,128 @@ async function deletarProduto(id) {
 }
 
 // ============================================
-// IMAGENS
+// UPLOAD DE IMAGENS - CORRIGIDO
+// ============================================
+
+async function fazerUpload(e) {
+  const file = e.target.files[0];
+  if (!file) {
+    mostrarToast('Nenhum arquivo selecionado', 'error');
+    return;
+  }
+
+  // Validações
+  if (!file.type.startsWith('image/')) {
+    mostrarToast('Por favor, selecione uma imagem válida (JPG, PNG, WebP, GIF)', 'error');
+    e.target.value = '';
+    return;
+  }
+
+  if (file.size > 5 * 1024 * 1024) {
+    mostrarToast('A imagem é muito grande. Máximo 5MB.', 'error');
+    e.target.value = '';
+    return;
+  }
+
+  const status = document.getElementById('upload-status');
+  const previewContainer = document.getElementById('preview-container');
+  const previewImg = document.getElementById('preview-imagem');
+  const imagemInput = document.getElementById('imagem');
+
+  if (!status) {
+    console.error('Elemento upload-status não encontrado');
+    return;
+  }
+
+  // Mostra progresso
+  status.textContent = '⏳ Enviando...';
+  status.style.color = '#F59E0B';
+
+  try {
+    const formData = new FormData();
+    formData.append('imagem', file);
+
+    const res = await fetch(API_URL + '/api/admin/upload', {
+      method: 'POST',
+      headers: { 
+        'Authorization': 'Bearer ' + token,
+        'Accept': 'application/json'
+      },
+      body: formData
+    });
+
+    if (!res.ok) {
+      const errorText = await res.text();
+      let errorMsg;
+      try {
+        const errorJson = JSON.parse(errorText);
+        errorMsg = errorJson.error || 'Erro no upload';
+      } catch {
+        errorMsg = 'Erro no upload: ' + res.status;
+      }
+      throw new Error(errorMsg);
+    }
+
+    const data = await res.json();
+
+    if (data.success && data.url) {
+      // Preenche o campo de imagem
+      if (imagemInput) {
+        imagemInput.value = data.url;
+        // Dispara evento para atualizar preview
+        imagemInput.dispatchEvent(new Event('input'));
+      }
+
+      // Mostra preview
+      if (previewContainer && previewImg) {
+        previewImg.src = data.url;
+        previewContainer.style.display = 'block';
+        previewImg.onerror = function() {
+          // Se a imagem não carregar, usa fallback
+          this.src = 'https://via.placeholder.com/150x150/1E3A8A/FFFFFF?text=JM';
+        };
+      }
+
+      status.textContent = '✅ Imagem enviada com sucesso!';
+      status.style.color = '#16A34A';
+      mostrarToast('📸 Imagem enviada com sucesso!', 'success');
+    } else {
+      throw new Error(data.error || 'Resposta inválida do servidor');
+    }
+
+  } catch (error) {
+    console.error('Erro no upload:', error);
+    status.textContent = '❌ ' + (error.message || 'Erro ao enviar imagem');
+    status.style.color = '#DC2626';
+    mostrarToast('Erro ao enviar imagem: ' + error.message, 'error');
+  } finally {
+    // Limpa o input para permitir re-upload
+    e.target.value = '';
+  }
+}
+
+// ============================================
+// REMOVER PREVIEW
+// ============================================
+function removerPreview() {
+  const container = document.getElementById('preview-container');
+  const imagemInput = document.getElementById('imagem');
+  
+  if (container) {
+    container.style.display = 'none';
+  }
+  if (imagemInput) {
+    imagemInput.value = '';
+  }
+  
+  const previewImg = document.getElementById('preview-imagem');
+  if (previewImg) {
+    previewImg.src = '';
+  }
+}
+
+// ============================================
+// ADICIONAR INPUT DE IMAGEM EXTRA
 // ============================================
 function adicionarInputImagem() {
   const container = document.getElementById('imagens-container');
@@ -922,97 +1043,34 @@ function adicionarInputImagem() {
   
   const div = document.createElement('div');
   div.className = 'imagem-input';
-  div.style.cssText = 'display:flex; gap:10px; margin-bottom:10px;';
+  div.style.cssText = 'display:flex; gap:10px; margin-bottom:10px; align-items:center;';
   div.innerHTML = `
-    <input type="text" placeholder="URL da imagem extra" style="flex:1; padding:8px; border:2px solid #E2E8F0; border-radius:8px;">
-    <button onclick="removerInputImagem(this)" style="background:red; color:white; border:none; border-radius:5px; padding:8px 12px; cursor:pointer;">×</button>
+    <input type="text" placeholder="URL da imagem extra (opcional)" 
+           style="flex:1; padding:8px; border:2px solid #E2E8F0; border-radius:8px; font-size:14px;">
+    <button onclick="this.parentElement.remove()" 
+            style="background:#DC2626; color:white; border:none; border-radius:5px; padding:8px 12px; cursor:pointer; font-size:16px;">
+      ✕
+    </button>
   `;
   container.appendChild(div);
 }
 
 function removerInputImagem(btn) {
-  if (btn) btn.parentElement.remove();
+  if (btn && btn.parentElement) {
+    btn.parentElement.remove();
+  }
 }
 
 function coletarImagens() {
-  const inputs = document.querySelectorAll('#imagens-container input');
+  const inputs = document.querySelectorAll('#imagens-container input[type="text"]');
   const urls = [];
   inputs.forEach(function(input) {
     const val = input.value.trim();
-    if (val) urls.push(val);
+    if (val && val.startsWith('http')) {
+      urls.push(val);
+    }
   });
   return urls;
-}
-
-// ============================================
-// UPLOAD
-// ============================================
-async function fazerUpload(e) {
-  const file = e.target.files[0];
-  if (!file) return;
-
-  if (!file.type.startsWith('image/')) {
-    mostrarToast('Selecione uma imagem', 'error');
-    return;
-  }
-  if (file.size > 5 * 1024 * 1024) {
-    mostrarToast('Imagem muito grande. Máximo 5MB.', 'error');
-    return;
-  }
-
-  const status = document.getElementById('upload-status');
-  if (status) {
-    status.textContent = '⏳ Enviando...';
-    status.style.color = '#F59E0B';
-  }
-
-  const formData = new FormData();
-  formData.append('imagem', file);
-
-  try {
-    const res = await fetch(API_URL + '/api/admin/upload', {
-      method: 'POST',
-      headers: { 'Authorization': 'Bearer ' + token },
-      body: formData
-    });
-
-    const data = await res.json();
-
-    if (res.ok && data.url) {
-      document.getElementById('imagem').value = data.url;
-      const preview = document.getElementById('preview-imagem');
-      if (preview) preview.src = data.url;
-      const container = document.getElementById('preview-container');
-      if (container) container.style.display = 'block';
-      
-      if (status) {
-        status.textContent = '✅ Imagem enviada!';
-        status.style.color = '#16A34A';
-      }
-      mostrarToast('Imagem enviada com sucesso!');
-    } else {
-      if (status) {
-        status.textContent = '❌ Erro no upload';
-        status.style.color = '#DC2626';
-      }
-      mostrarToast(data.error || 'Erro ao enviar', 'error');
-    }
-  } catch (error) {
-    console.error('Erro:', error);
-    if (status) {
-      status.textContent = '❌ Erro de conexão';
-      status.style.color = '#DC2626';
-    }
-    mostrarToast('Erro ao enviar imagem', 'error');
-  }
-
-  e.target.value = '';
-}
-
-function removerPreview() {
-  const container = document.getElementById('preview-container');
-  if (container) container.style.display = 'none';
-  document.getElementById('imagem').value = '';
 }
 
 // ============================================
