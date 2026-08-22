@@ -871,7 +871,7 @@ async function finalizar() {
 }
 
 // ============================================
-// FUNÇÕES DE WISHLIST
+// WISHLIST
 // ============================================
 async function toggleWishlist(produtoId) {
   if (!usuarioLogado) {
@@ -880,39 +880,24 @@ async function toggleWishlist(produtoId) {
   }
   
   try {
-    console.log('🔄 Toggle wishlist:', produtoId);
     const btn = document.getElementById('wishlist-btn-' + produtoId);
     if (!btn) return;
     
+    // Verificar se já está na wishlist
     const resCheck = await fetch(API_URL + '/api/wishlist', {
-      headers: { 
-        'Authorization': 'Bearer ' + tokenJM,
-        'Content-Type': 'application/json'
-      }
+      headers: { 'Authorization': 'Bearer ' + tokenJM }
     });
-    
-    if (!resCheck.ok) {
-      console.error('❌ Erro ao buscar wishlist:', resCheck.status);
-      mostrarToast('Erro ao verificar wishlist', 'error');
-      return;
-    }
-    
     const wishlist = await resCheck.json();
     const existe = wishlist.some(function(item) { return item.produto_id === produtoId; });
     
     if (existe) {
       const res = await fetch(API_URL + '/api/wishlist/' + produtoId, {
         method: 'DELETE',
-        headers: { 
-          'Authorization': 'Bearer ' + tokenJM,
-          'Content-Type': 'application/json'
-        }
+        headers: { 'Authorization': 'Bearer ' + tokenJM }
       });
       if (res.ok) {
         btn.textContent = '🤍';
-        mostrarToast('Removido da wishlist 💔');
-      } else {
-        console.error('❌ Erro ao remover:', await res.text());
+        mostrarToast('Removido da wishlist ❤️');
       }
     } else {
       const res = await fetch(API_URL + '/api/wishlist', {
@@ -926,12 +911,9 @@ async function toggleWishlist(produtoId) {
       if (res.ok) {
         btn.textContent = '❤️';
         mostrarToast('Adicionado à wishlist ❤️');
-      } else {
-        console.error('❌ Erro ao adicionar:', await res.text());
       }
     }
   } catch (error) {
-    console.error('❌ Erro ao alternar wishlist:', error);
     mostrarToast('Erro de conexão', 'error');
   }
 }
@@ -939,42 +921,62 @@ async function toggleWishlist(produtoId) {
 async function carregarWishlistStatus() {
   try {
     const res = await fetch(API_URL + '/api/wishlist', {
-      headers: { 
-        'Authorization': 'Bearer ' + tokenJM,
-        'Content-Type': 'application/json'
-      }
+      headers: { 'Authorization': 'Bearer ' + tokenJM }
     });
-    
-    if (!res.ok) {
-      console.error('❌ Erro ao buscar wishlist:', res.status);
-      return;
-    }
-    
     const wishlist = await res.json();
-    console.log('✅ Wishlist carregada:', wishlist);
     
     wishlist.forEach(function(item) {
       const btn = document.getElementById('wishlist-btn-' + item.produto_id);
       if (btn) btn.textContent = '❤️';
     });
   } catch (error) {
-    console.error('❌ Erro carregar wishlist status:', error);
+    console.error('Erro carregar wishlist status:', error);
   }
 }
 
-function abrirWishlist() {
+async function abrirWishlist() {
   if (!usuarioLogado) {
     mostrarToast('Faça login para ver sua wishlist', 'error');
     return abrirLogin();
   }
   
-  carregarWishlistStatus();
-  mostrarToast('❤️ Wishlist carregada!', 'success');
+  try {
+    const res = await fetch(API_URL + '/api/wishlist', {
+      headers: { 'Authorization': 'Bearer ' + tokenJM }
+    });
+    const wishlist = await res.json();
+    
+    const container = document.getElementById('wishlist-itens');
+    
+    if (wishlist.length === 0) {
+      container.innerHTML = '<p style="text-align:center; padding:20px; color:#666;">Sua wishlist está vazia 💔</p>';
+    } else {
+      container.innerHTML = wishlist.map(function(item) {
+        const p = item.produtos;
+        return `
+          <div style="display:flex; align-items:center; gap:15px; padding:10px; border-bottom:1px solid #eee;">
+            <img src="${p.imagem}" alt="${p.nome}" style="width:60px; height:60px; object-fit:cover; border-radius:8px;">
+            <div style="flex:1;">
+              <strong>${p.nome}</strong>
+              <p style="color:#16A34A; font-weight:bold;">${p.preco.toLocaleString('pt-PT')} KZ</p>
+            </div>
+            <div style="display:flex; gap:8px;">
+              <button class="btn btn-sm" style="background:#22C55E; width:auto;" onclick='adicionarCarrinho(${JSON.stringify(p)})'>🛒</button>
+              <button class="btn btn-sm btn-danger" style="width:auto;" onclick='toggleWishlist(${p.id})'>🗑️</button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+    
+    document.getElementById('modal-wishlist').style.display = 'block';
+  } catch (error) {
+    mostrarToast('Erro ao carregar wishlist', 'error');
+  }
 }
 
 function fecharWishlist() {
-  const modal = document.getElementById('modal-wishlist');
-  if (modal) modal.style.display = 'none';
+  document.getElementById('modal-wishlist').style.display = 'none';
 }
 
 // ============================================
