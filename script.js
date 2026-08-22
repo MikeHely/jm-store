@@ -1097,11 +1097,10 @@ async function salvarPerfil() {
 }
 
 // ============================================
-// FUNÇÕES DE PEDIDOS E RASTREIO
+// PEDIDOS
 // ============================================
 async function verPedidos() {
   const container = document.getElementById('perfil-pedidos');
-  if (!container) return;
   
   if (container.style.display === 'block') {
     container.style.display = 'none';
@@ -1112,11 +1111,6 @@ async function verPedidos() {
     const res = await fetch(API_URL + '/api/pedidos', {
       headers: { 'Authorization': 'Bearer ' + tokenJM }
     });
-    
-    if (!res.ok) {
-      throw new Error('Erro ao carregar pedidos');
-    }
-    
     const pedidos = await res.json();
     
     if (pedidos.length === 0) {
@@ -1142,18 +1136,21 @@ async function verPedidos() {
               ${p.total.toLocaleString('pt-PT')} KZ
             </p>
             ${p.codigo_rastreio ? `<p style="font-size:13px; color:#3B82F6;">📦 Código: ${p.codigo_rastreio}</p>` : ''}
-            <details>
-              <summary style="cursor:pointer; color:#1E3A8A; font-size:14px;">Ver detalhes</summary>
-              ${p.itens_pedido ? p.itens_pedido.map(function(item) {
-                return `
-                  <div style="display:flex; gap:10px; padding:5px 0; border-bottom:1px solid #f0f0f0; font-size:14px;">
-                    <span>${item.produtos ? item.produtos.nome : 'Produto'}</span>
-                    <span>x${item.quantidade}</span>
-                    <span style="margin-left:auto;">${(item.preco_unitario * item.quantidade).toLocaleString('pt-PT')} KZ</span>
-                  </div>
-                `;
-              }).join('') : ''}
-            </details>
+            <div style="display:flex; gap:8px; margin-top:10px; flex-wrap:wrap;">
+              <button class="btn btn-sm" style="background:#6366F1; width:auto;" onclick='verRastreio(${p.id})'>📦 Rastrear</button>
+              <details style="flex:1;">
+                <summary style="cursor:pointer; color:#1E3A8A; font-size:14px;">Ver detalhes</summary>
+                ${p.itens_pedido ? p.itens_pedido.map(function(item) {
+                  return `
+                    <div style="display:flex; gap:10px; padding:5px 0; border-bottom:1px solid #f0f0f0; font-size:14px;">
+                      <span>${item.produtos ? item.produtos.nome : 'Produto'}</span>
+                      <span>x${item.quantidade}</span>
+                      <span style="margin-left:auto;">${(item.preco_unitario * item.quantidade).toLocaleString('pt-PT')} KZ</span>
+                    </div>
+                  `;
+                }).join('') : ''}
+              </details>
+            </div>
           </div>
         `;
       }).join('');
@@ -1161,91 +1158,52 @@ async function verPedidos() {
     
     container.style.display = 'block';
   } catch (error) {
-    console.error('Erro ao carregar pedidos:', error);
-    mostrarToast('Erro ao carregar pedidos', 'error');
+    alert('Erro ao carregar pedidos');
   }
 }
 
+// ============================================
+// RASTREIO
+// ============================================
 async function verRastreio(pedidoId) {
-  if (!pedidoId) {
-    mostrarToast('ID do pedido não informado', 'error');
-    return;
-  }
-
   try {
-    mostrarToast('🔍 Buscando rastreio...', 'warning');
-    
     const res = await fetch(API_URL + '/api/pedidos/' + pedidoId + '/rastreio', {
-      headers: { 
-        'Authorization': 'Bearer ' + tokenJM,
-        'Content-Type': 'application/json'
-      }
+      headers: { 'Authorization': 'Bearer ' + tokenJM }
     });
-
-    if (!res.ok) {
-      const data = await res.json();
-      throw new Error(data.error || 'Erro ao buscar rastreio');
-    }
-
-    const data = await res.json();
     
-    // Preenche o modal
-    const container = document.getElementById('rastreio-conteudo');
-    if (container) {
-      let historicoHtml = '';
-      if (data.historico_rastreio && data.historico_rastreio.length > 0) {
-        historicoHtml = data.historico_rastreio.map(function(h) {
-          const statusClass = h.status === 'Entregue' ? 'color:#16A34A;' : 
-                              h.status === 'Enviado' ? 'color:#3B82F6;' : 
-                              'color:#F59E0B;';
-          return `
-            <div style="border-left:3px solid #1E3A8A; padding-left:12px; margin:10px 0; padding-bottom:5px;">
-              <p style="font-weight:bold; ${statusClass}">${h.status || 'Atualização'}</p>
-              <p style="font-size:13px; color:#666;">${h.observacao || ''}</p>
-              <p style="font-size:11px; color:#999;">${new Date(h.data).toLocaleString('pt-PT')}</p>
-            </div>
-          `;
-        }).join('');
-      } else {
-        historicoHtml = '<p style="color:#666;">Nenhum histórico disponível</p>';
-      }
-
-      container.innerHTML = `
-        <div style="background:#f8fafc; padding:15px; border-radius:8px;">
-          <p><strong>📦 Pedido #${pedidoId}</strong></p>
-          <p><strong>Código:</strong> ${data.codigo_rastreio || 'Aguardando'}</p>
-          <p><strong>Transportadora:</strong> ${data.transportadora || 'JM Express'}</p>
-          <p><strong>Status:</strong> 
-            <span style="padding:3px 12px; border-radius:12px; font-size:13px; 
-              ${data.status === 'Entregue' ? 'background:#D1FAE5; color:#065F46;' : 
-                data.status === 'Enviado' ? 'background:#DBEAFE; color:#1E40AF;' : 
-                'background:#FEF3C7; color:#92400E;'}">
-              ${data.status || 'Pendente'}
-            </span>
-          </p>
-          <p style="font-size:12px; color:#999;">
-            Última atualização: ${data.status_atualizado_em ? new Date(data.status_atualizado_em).toLocaleString('pt-PT') : 'Não informado'}
-          </p>
-        </div>
+    if (res.ok) {
+      const data = await res.json();
+      document.getElementById('rastreio-conteudo').innerHTML = `
+        <p><strong>Código:</strong> ${data.codigo_rastreio || 'Aguardando'}</p>
+        <p><strong>Transportadora:</strong> ${data.transportadora || 'JM Express'}</p>
+        <p><strong>Status:</strong> ${data.status}</p>
         <div style="margin-top:15px;">
-          <h4 style="margin-bottom:10px;">📋 Histórico</h4>
-          ${historicoHtml}
+          <h4>Histórico:</h4>
+          ${data.historico_rastreio && data.historico_rastreio.length > 0 ? 
+            data.historico_rastreio.map(function(h) {
+              return `
+                <div style="border-left:2px solid #1E3A8A; padding-left:10px; margin:10px 0;">
+                  <p><strong>${h.status}</strong></p>
+                  <p style="font-size:13px; color:#666;">${h.observacao || ''}</p>
+                  <p style="font-size:12px; color:#999;">${new Date(h.data).toLocaleString('pt-PT')}</p>
+                </div>
+              `;
+            }).join('') 
+            : '<p style="color:#666;">Nenhum histórico disponível</p>'
+          }
         </div>
       `;
+      document.getElementById('modal-rastreio').style.display = 'block';
     }
-
-    document.getElementById('modal-rastreio').style.display = 'block';
-    mostrarToast('✅ Rastreio carregado!', 'success');
-    
   } catch (error) {
-    console.error('Erro ao ver rastreio:', error);
-    mostrarToast(error.message || 'Erro ao carregar rastreio', 'error');
+    mostrarToast('Erro ao carregar rastreio', 'error');
   }
 }
 
 function fecharRastreio() {
   document.getElementById('modal-rastreio').style.display = 'none';
 }
+
 
 // ============================================
 // FUNÇÕES DE AVALIAÇÃO
