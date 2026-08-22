@@ -1356,6 +1356,17 @@ async function registrarCheckout() {
 
 async function registrarVisita() {
   try {
+    // Obter localização primeiro
+    let localizacao = null;
+    try {
+      const locRes = await fetch(API_URL + '/api/geolocalizacao');
+      if (locRes.ok) {
+        localizacao = await locRes.json();
+      }
+    } catch (e) {
+      console.warn('Erro ao obter localização:', e);
+    }
+    
     const resposta = await fetch(API_URL + '/api/visitantes/registrar', {
       method: 'POST',
       headers: { 
@@ -1365,7 +1376,8 @@ async function registrarVisita() {
       body: JSON.stringify({ 
         sessionId: sessionId, 
         pagina: window.location.pathname,
-        userAgent: navigator.userAgent
+        userAgent: navigator.userAgent,
+        localizacao: localizacao // Adiciona a localização!
       })
     });
     
