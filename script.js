@@ -295,14 +295,7 @@ async function cadastrar() {
       abrirLogin();
       const emailLogin = document.getElementById('email-login');
       if (emailLogin) emailLogin.value = email;
-                // Após criar o usuário
-        await enviarNotificacaoEmail('novo_usuario', { 
-          nome, 
-          email, 
-          telefone, 
-          regiao 
-        });
-      
+      // ✅ REMOVA a chamada de notificação daqui - O BACKEND já envia!
     } else {
       mostrarToast(data.error || 'Erro ao cadastrar', 'error');
     }
@@ -311,7 +304,6 @@ async function cadastrar() {
     mostrarToast('Erro de conexão com o servidor', 'error');
   }
 }
-
 // ============================================
 // FUNÇÃO DE LOGOUT
 // ============================================
@@ -861,20 +853,9 @@ async function finalizar() {
       fecharCarrinho();
       
       mostrarToast('✅ Pedido enviado! Redirecionando para WhatsApp...');
+      // ✅ REMOVA a chamada de notificação daqui - O BACKEND já envia!
       setTimeout(function() {
         window.location.href = data.link;
-        // Após criar o pedido
-        await enviarNotificacaoEmail('pedido_finalizado', {
-          pedido_id: pedido.id,
-          nome: usuario?.nome,
-          email: usuario?.email,
-          telefone: usuario?.telefone,
-          regiao: usuario?.regiao,
-          endereco: endereco || usuario?.regiao,
-          itens: itens,
-          total: total,
-          metodo_pagamento: metodo_pagamento || 'WhatsApp'
-        });
       }, 2000);
     } else {
       mostrarToast(data.error || 'Erro ao finalizar', 'error');
