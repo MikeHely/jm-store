@@ -439,10 +439,10 @@ function renderizarProdutos() {
     const imagemFallback = 'https://via.placeholder.com/300x300/1E3A8A/FFFFFF?text=JM+Store';
     const imagemUrl = p.imagem || imagemFallback;
     
-    const statusIcon = p.status === 'novo' ? '🆕' : '🔄';
-    const statusText = p.status === 'novo' ? 'Novo' : 'Recondicionado';
-    const estoqueIcon = p.estoque === 'disponivel' ? '✅' : '❌';
-    const estoqueText = p.estoque === 'disponivel' ? 'Disponível' : 'Indisponível';
+    const statusIcon = p.status === 'novo' ? '🆕' : '🔄' : '';
+    const statusText = p.status === 'novo' ? 'Novo' : 'Recondicionado' : '';
+    const estoqueIcon = p.estoque === 'disponivel' ? '✅' : '';
+    const estoqueText = p.estoque === 'disponivel' ? 'Disponível' : 'SobEncomenda';
     
     return `
     <div class="produto" data-id="${p.id}">
@@ -479,9 +479,9 @@ function renderizarProdutos() {
         
         <div style="display:flex; gap:8px; margin-top:10px;">
           <button class="btn" onclick='adicionarCarrinho(${JSON.stringify(p)})' 
-                  style="${p.estoque === 'indisponivel' ? 'background:#9CA3AF; cursor:not-allowed; flex:2;' : 'flex:2;'}"
+                  style="${p.estoque === 'indisponivel' ? 'background:#9CA3AF;  flex:2;' : 'flex:2;'}"
                   ${p.estoque === 'indisponivel' ? 'disabled' : ''}>
-            ${p.estoque === 'disponivel' ? '🛒 Adicionar' : '❌ Indisponível'}
+            ${p.estoque === 'disponivel' ? '🛒 Adicionar' : ' Reservar'}
           </button>
           <button class="btn" style="background:transparent; border:1px solid #ddd; flex:0; padding:12px 15px; width:auto; font-size:20px;" 
                   onclick='toggleWishlist(${p.id})' id="wishlist-btn-${p.id}">
