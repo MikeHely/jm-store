@@ -660,7 +660,7 @@ function renderizarTabela() {
           <br>
           <small style="color:#666;">
             ${p.status === 'novo' ? '🆕 Novo' : '🔄 Recondicionado'} | 
-            ${p.estoque === 'disponivel' ? '✅ Disponível' : '❌ Indisponível'}
+            ${p.estoque === 'disponivel' ? '✅ Disponível' : 'Sob Encomenda'}
           </small>
         </td>
         <td>
