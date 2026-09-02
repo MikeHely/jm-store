@@ -31,7 +31,7 @@ nav {
   margin: auto;
   padding: 15px 20px;
   display: flex;
-  justify-content: space-between;
+  justify-content: ;
   align-items: center;
   flex-wrap: wrap;
   gap: 10px;
@@ -89,7 +89,7 @@ nav button:hover {
 }
 
 /* ============================================
-   HEADER QUE ENCOLHE AO SCROLL
+   HEADER QUE ENCOLHE AO SCROLL (CORRIGIDO)
    ============================================ */
 
 header {
@@ -99,13 +99,15 @@ header {
   background: white;
   box-shadow: 0 2px 10px rgba(0,0,0,0.1);
   transition: all 0.3s ease;
-  height: 80px; /* Altura normal */
-  overflow: hidden;
+  min-height: 70px; /* Altura mínima em vez de fixa */
+  max-height: 80px;
+  overflow: visible; /* ← IMPORTANTE: não esconder conteúdo */
 }
 
 /* Quando encolhido */
 header.shrink {
-  height: 55px;
+  max-height: 55px;
+  min-height: 55px;
   box-shadow: 0 4px 15px rgba(0,0,0,0.15);
 }
 
@@ -118,12 +120,8 @@ header.shrink .logo-img {
   height: 32px;
 }
 
-header.shrink nav h1 {
-  font-size: 1.3em;
-}
-
 header.shrink nav button {
-  padding: 6px 14px;
+  padding: 5px 12px;
   font-size: 13px;
 }
 
@@ -131,25 +129,33 @@ header.shrink .carrinho-icone {
   font-size: 20px;
 }
 
-/* Transições suaves para todos os elementos do header */
+/* Transições suaves */
 header * {
   transition: all 0.3s ease;
 }
 
-/* Ajuste do nav para o header */
+/* ===== NAV ===== */
 header nav {
   max-width: 1200px;
   margin: auto;
-  padding: 18px 20px;
+  padding: 12px 20px;
   display: flex;
   justify-content: space-between;
   align-items: center;
   flex-wrap: wrap;
-  gap: 10px;
+  gap: 8px;
   transition: all 0.3s ease;
+  min-height: 60px;
 }
 
-/* Logo */
+/* ===== LOGO ===== */
+.logo-link {
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+  flex-shrink: 0; /* Não encolhe */
+}
+
 .logo-img {
   height: 45px;
   width: auto;
@@ -157,48 +163,190 @@ header nav {
   transition: all 0.3s ease;
 }
 
-/* Responsivo */
+/* ===== ÁREA DO USUÁRIO ===== */
+#user-area {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  flex: 1; /* Ocupa espaço */
+  justify-content: flex-end; /* Alinha à direita */
+}
+
+#user-nome {
+  font-weight: bold;
+  color: var(--cor-principal);
+  font-size: 14px;
+  white-space: nowrap;
+}
+
+header nav button {
+  background: var(--cor-principal);
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: 0.3s;
+  font-size: 14px;
+  white-space: nowrap;
+}
+
+header nav button:hover {
+  background: var(--cor-hover);
+}
+
+#btn-wishlist {
+  background: transparent !important;
+  font-size: 20px !important;
+  padding: 8px !important;
+}
+
+/* ===== CARRINHO ===== */
+.carrinho-icone {
+  font-size: 24px;
+  cursor: pointer;
+  position: relative;
+  flex-shrink: 0;
+  margin-left: 5px;
+}
+
+#carrinho-count {
+  background: red;
+  color: white;
+  border-radius: 50%;
+  padding: 2px 7px;
+  font-size: 12px;
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  font-weight: bold;
+}
+
+/* ============================================
+   RESPONSIVO
+   ============================================ */
+
+/* Tablets e telemóveis grandes */
 @media (max-width: 768px) {
   header {
-    height: 65px;
+    min-height: 60px;
+    max-height: 70px;
   }
+  
   header.shrink {
-    height: 50px;
+    min-height: 48px;
+    max-height: 48px;
   }
+  
   header nav {
-    padding: 10px 15px;
+    padding: 8px 12px;
+    gap: 5px;
+    min-height: 50px;
   }
+  
   .logo-img {
     height: 35px;
   }
+  
   header.shrink .logo-img {
     height: 28px;
   }
+  
+  #user-nome {
+    font-size: 12px;
+  }
+  
   header nav button {
     padding: 5px 10px;
     font-size: 12px;
   }
-}
-
-@media (max-width: 480px) {
-  header {
-    height: 58px;
-  }
-  header.shrink {
-    height: 45px;
-  }
-  .logo-img {
-    height: 30px;
-  }
-  header.shrink .logo-img {
-    height: 24px;
-  }
-  header nav button {
+  
+  header.shrink nav button {
     padding: 4px 8px;
     font-size: 11px;
   }
-  header .carrinho-icone {
+  
+  .carrinho-icone {
+    font-size: 20px;
+  }
+  
+  header.shrink .carrinho-icone {
     font-size: 18px;
+  }
+  
+  #btn-wishlist {
+    font-size: 16px !important;
+    padding: 4px !important;
+  }
+}
+
+/* Telemóveis pequenos */
+@media (max-width: 480px) {
+  header {
+    min-height: 52px;
+    max-height: 62px;
+  }
+  
+  header.shrink {
+    min-height: 42px;
+    max-height: 42px;
+  }
+  
+  header nav {
+    padding: 5px 8px;
+    gap: 4px;
+    min-height: 42px;
+  }
+  
+  .logo-img {
+    height: 28px;
+  }
+  
+  header.shrink .logo-img {
+    height: 22px;
+  }
+  
+  #user-nome {
+    font-size: 10px;
+    display: none; /* Esconde o nome em telas muito pequenas */
+  }
+  
+  header nav button {
+    padding: 4px 6px;
+    font-size: 10px;
+    border-radius: 5px;
+  }
+  
+  header.shrink nav button {
+    padding: 3px 5px;
+    font-size: 9px;
+  }
+  
+  .carrinho-icone {
+    font-size: 17px;
+  }
+  
+  header.shrink .carrinho-icone {
+    font-size: 15px;
+  }
+  
+  #carrinho-count {
+    font-size: 9px;
+    padding: 1px 5px;
+    top: -6px;
+    right: -6px;
+  }
+  
+  #btn-wishlist {
+    font-size: 14px !important;
+    padding: 3px !important;
+  }
+  
+  #btn-admin {
+    font-size: 9px !important;
+    padding: 3px 5px !important;
   }
 }
 
