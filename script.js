@@ -1388,6 +1388,37 @@ async function registrarVisita() {
   }
 }
 
+
+
+// ============================================
+// HEADER QUE ENCOLHE AO SCROLL
+// ============================================
+
+let ultimoScroll = 0;
+const header = document.querySelector('header');
+const SCROLL_LIMITE = 80; // Quantos pixels rolar para encolher
+
+window.addEventListener('scroll', function() {
+  const scrollAtual = window.pageYOffset || document.documentElement.scrollTop;
+  
+  // Se rolou mais que o limite, encolhe
+  if (scrollAtual > SCROLL_LIMITE) {
+    header.classList.add('shrink');
+  } else {
+    header.classList.remove('shrink');
+  }
+  
+  ultimoScroll = scrollAtual;
+});
+
+// Executar ao carregar para verificar estado inicial
+document.addEventListener('DOMContentLoaded', function() {
+  if (window.pageYOffset > SCROLL_LIMITE) {
+    header.classList.add('shrink');
+  }
+});
+
+
 // ============================================
 // FECHAR MODAIS CLICANDO FORA
 // ============================================
