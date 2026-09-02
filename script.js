@@ -439,9 +439,9 @@ function renderizarProdutos() {
     const imagemFallback = 'https://via.placeholder.com/300x300/1E3A8A/FFFFFF?text=JM+Store';
     const imagemUrl = p.imagem || imagemFallback;
     
-    const statusIcon = p.status === 'novo' ? '🆕' : '🔄' : '';
-    const statusText = p.status === 'novo' ? 'Novo' : 'Recondicionado' : '';
-    const estoqueIcon = p.estoque === 'disponivel' ? '✅' : '';
+    const statusIcon = p.status === 'novo' ? '🆕' : '🔄' ;
+    const statusText = p.status === 'novo' ? 'Novo' : 'Recondicionado' ;
+    const estoqueIcon = p.estoque === 'disponivel' ? '✅' : ' ';
     const estoqueText = p.estoque === 'disponivel' ? 'Disponível' : 'SobEncomenda';
     
     return `
