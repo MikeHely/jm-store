@@ -479,8 +479,8 @@ function renderizarProdutos() {
         
         <div style="display:flex; gap:8px; margin-top:10px;">
           <button class="btn" onclick='adicionarCarrinho(${JSON.stringify(p)})' 
-                  style="${p.estoque === 'indisponivel' ? 'background:#9CA3AF;  flex:2;' : 'flex:2;'}"
-                  ${p.estoque === 'indisponivel' ? 'disabled' : ''}>
+                  style="${p.estoque === 'indisponivel' ? 'background:#9CA3AF'}"
+                  ${p.estoque === 'indisponivel' ? 'disabled'}>
             ${p.estoque === 'disponivel' ? '🛒 Adicionar' : ' Reservar'}
           </button>
           <button class="btn" style="background:transparent; border:1px solid #ddd; flex:0; padding:12px 15px; width:auto; font-size:20px;" 
