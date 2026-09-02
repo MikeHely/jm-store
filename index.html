@@ -62,7 +62,7 @@
   <section class="banner">
     <div>
       <h2>🔥 Tecnologia de Ponta</h2>
-      <p>iPhone, Tênis e T-Shirts com entrega em Luanda</p>
+      <p>iPhone, Tênis e T-Shirts com entrega em Luanda, Zaire, Huambo,Lubango e Benguela</p>
       <p style="font-size:14px; margin-top:10px; opacity:0.8;">⭐ Mais de 500 clientes satisfeitos</p>
     </div>
   </section>
@@ -154,7 +154,7 @@
   <!-- COPY 4 - RODAPÉ COM CTA -->
   <div style="background: #F8FAFC; padding: 40px 20px; text-align: center;">
     <h3 style="color: #1E3A8A;">🛍️ Pronto para fazer sua compra?</h3>
-    <p style="color: #374151; max-width: 500px; margin: 10px auto;">Escolha seus produtos favoritos e finalize pelo WhatsApp. 
+    <p style="color: #374151; max-width: 500px; margin: 10px auto;">Escolha seus produtos favoritos e siga pelo WhatsApp para pedir ou reservar. 
     <br>Estamos prontos para te atender!</p>
     <button onclick="document.getElementById('produtos').scrollIntoView({behavior:'smooth'})" 
             style="background: #1E3A8A; color: white; border: none; padding: 15px 40px; border-radius: 8px; font-size: 18px; font-weight: bold; cursor: pointer; margin-top: 15px;">
@@ -254,12 +254,12 @@
       <div style="margin: 10px 0;">
         <input id="endereco-entrega" placeholder="Endereço de entrega (opcional)" style="width:100%;">
         <select id="metodo-pagamento" style="width:100%; margin-top:5px;">
-          <option value="WhatsApp">WhatsApp</option>
           <option value="Transferência Bancária">Transferência Bancária</option>
           <option value="Pagamento na Entrega">Pagamento na Entrega</option>
+          <option value="Pagamento por referencia">Pagamento por referencia</option>
         </select>
       </div>
-      <button class="btn btn-whatsapp" onclick="finalizar()">📱 Finalizar no WhatsApp</button>
+      <button class="btn btn-whatsapp" onclick="finalizar()">📱 Pedir/Reservar</button>
     </div>
   </div>
 
@@ -278,7 +278,7 @@
   <div id="modal-wishlist" class="modal">
     <div class="modal-conteudo" style="max-width:700px;">
       <span class="fechar" onclick="fecharWishlist()">&times;</span>
-      <h2>❤️ Minha Wishlist</h2>
+      <h2>❤️ Meus Favoritos</h2>
       <div id="wishlist-itens">
         <p style="text-align:center; padding:20px; color:#666;">Carregando...</p>
       </div>
