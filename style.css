@@ -100,13 +100,13 @@ header {
   box-shadow: 0 2px 10px rgba(0,0,0,0.1);
   transition: all 0.3s ease;
   min-height: 70px; /* Altura mínima em vez de fixa */
-  max-height: 80px;
+  max-height: 100px;
   overflow: visible; /* ← IMPORTANTE: não esconder conteúdo */
 }
 
 /* Quando encolhido */
 header.shrink {
-  max-height: 55px;
+  max-height: 69px;
   min-height: 55px;
   box-shadow: 0 4px 15px rgba(0,0,0,0.15);
 }
@@ -126,7 +126,7 @@ header.shrink nav button {
 }
 
 header.shrink .carrinho-icone {
-  font-size: 20px;
+  font-size: 25px;
 }
 
 /* Transições suaves */
