@@ -88,6 +88,120 @@ nav button:hover {
   font-weight: bold;
 }
 
+/* ============================================
+   HEADER QUE ENCOLHE AO SCROLL
+   ============================================ */
+
+header {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  background: white;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  transition: all 0.3s ease;
+  height: 80px; /* Altura normal */
+  overflow: hidden;
+}
+
+/* Quando encolhido */
+header.shrink {
+  height: 55px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+}
+
+header.shrink nav {
+  padding-top: 5px;
+  padding-bottom: 5px;
+}
+
+header.shrink .logo-img {
+  height: 32px;
+}
+
+header.shrink nav h1 {
+  font-size: 1.3em;
+}
+
+header.shrink nav button {
+  padding: 6px 14px;
+  font-size: 13px;
+}
+
+header.shrink .carrinho-icone {
+  font-size: 20px;
+}
+
+/* Transições suaves para todos os elementos do header */
+header * {
+  transition: all 0.3s ease;
+}
+
+/* Ajuste do nav para o header */
+header nav {
+  max-width: 1200px;
+  margin: auto;
+  padding: 18px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  transition: all 0.3s ease;
+}
+
+/* Logo */
+.logo-img {
+  height: 45px;
+  width: auto;
+  object-fit: contain;
+  transition: all 0.3s ease;
+}
+
+/* Responsivo */
+@media (max-width: 768px) {
+  header {
+    height: 65px;
+  }
+  header.shrink {
+    height: 50px;
+  }
+  header nav {
+    padding: 10px 15px;
+  }
+  .logo-img {
+    height: 35px;
+  }
+  header.shrink .logo-img {
+    height: 28px;
+  }
+  header nav button {
+    padding: 5px 10px;
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  header {
+    height: 58px;
+  }
+  header.shrink {
+    height: 45px;
+  }
+  .logo-img {
+    height: 30px;
+  }
+  header.shrink .logo-img {
+    height: 24px;
+  }
+  header nav button {
+    padding: 4px 8px;
+    font-size: 11px;
+  }
+  header .carrinho-icone {
+    font-size: 18px;
+  }
+}
+
 /* ===== BANNER ===== */
 .banner {
   background: linear-gradient(rgba(30,58,138,0.7), rgba(30,58,138,0.7)), url('https://images.unsplash.com/photo-1445205170230-053b83016050?q=80') center/cover;
