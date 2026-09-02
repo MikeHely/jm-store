@@ -10,13 +10,14 @@
 <body>
   <header>
     <nav>
-  <div style="displa=flex">
+      
+  <div id="user-area">
        <!-- LOGO COM IMAGEM PNG -->
 <a href="/" class="logo-link" onclick="location.reload(); return false;">
   <img src="assets/images/logo.png" alt="JM Store - Qualidade e Preço Justo" class="logo-img">
-</a>
+
 <!-- LOGO COM SVG (CORRETO) -->
-<a href="/" class="logo-link" onclick="location.reload(); return false;">
+
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 120" width="150" height="60">
     <defs>
       <linearGradient id="metal" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -49,8 +50,9 @@
         <button onclick="logout()" id="btn-logout" style="display:none">Sair</button>
         <button onclick="abrirPerfil()" id="btn-perfil" style="display:none">👤</button>
         <button onclick="abrirWishlist()" id="btn-wishlist" style="display:none; background:transparent; font-size:20px;">❤️</button>
+        <button id="btn-admin" onclick="location.href='admin.html'" style="display:none">Painel</button>
       </div>
-      <button id="btn-admin" onclick="location.href='admin.html'" style="display:none">Painel</button>
+      
       <div class="carrinho-icone" onclick="abrirCarrinho()">
         🛒 <span id="carrinho-count">0</span>
       </div>
