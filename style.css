@@ -532,3 +532,29 @@ footer {
     grid-template-columns: 1fr;
   }
 }
+
+/* ===== LOGO COM IMAGEM PNG ===== */
+.logo-link {
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+}
+
+.logo-img {
+  height: 50px;           /* Ajuste conforme sua logo */
+  width: auto;
+  transition: all 0.3s ease;
+  object-fit: contain;
+}
+
+.logo-img:hover {
+  transform: scale(1.02);
+  filter: brightness(1.05);
+}
+
+/* Responsivo - móveis */
+@media (max-width: 768px) {
+  .logo-img {
+    height: 38px;
+  }
+}
