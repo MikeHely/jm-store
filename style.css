@@ -533,7 +533,8 @@ footer {
   }
 }
 
-/* ===== LOGO COM IMAGEM PNG ===== */
+
+/* ===== LOGO ===== */
 .logo-link {
   display: flex;
   align-items: center;
@@ -541,20 +542,26 @@ footer {
 }
 
 .logo-img {
-  height: 50px;           /* Ajuste conforme sua logo */
+  height: 45px;
   width: auto;
-  transition: all 0.3s ease;
   object-fit: contain;
+  transition: all 0.3s ease;
 }
 
 .logo-img:hover {
   transform: scale(1.02);
-  filter: brightness(1.05);
+  opacity: 0.9;
 }
 
-/* Responsivo - móveis */
+/* Responsivo */
 @media (max-width: 768px) {
   .logo-img {
-    height: 38px;
+    height: 35px;
+  }
+}
+
+@media (max-width: 480px) {
+  .logo-img {
+    height: 30px;
   }
 }
