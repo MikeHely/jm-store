@@ -434,15 +434,16 @@ function renderizarProdutos() {
     lista.innerHTML = '<p style="text-align:center; padding:40px;">Nenhum produto encontrado</p>';
     return;
   }
-  
+
   lista.innerHTML = filtrados.map(function(p) {
     const imagemFallback = 'https://via.placeholder.com/300x300/1E3A8A/FFFFFF?text=JM+Store';
     const imagemUrl = p.imagem || imagemFallback;
     
-    const statusIcon = p.status === 'novo' ? '🆕' : '🔄' ;
-    const statusText = p.status === 'novo' ? 'Novo' : 'Recondicionado' ;
-    const estoqueIcon = p.estoque === 'disponivel' ? '✅' : ' ';
-    const estoqueText = p.estoque === 'disponivel' ? 'Disponível' : 'SobEncomenda';
+    // ✅ CORRETO
+    const statusIcon = p.status === 'novo' ? '🆕' : '🔄';
+    const statusText = p.status === 'novo' ? 'Novo' : 'Recondicionado';
+    const estoqueIcon = p.estoque === 'disponivel' ? '✅' : '📦';
+    const estoqueText = p.estoque === 'disponivel' ? 'Disponível' : 'Sob Encomenda';
     
     return `
     <div class="produto" data-id="${p.id}">
@@ -455,7 +456,7 @@ function renderizarProdutos() {
           <span class="tag" style="background:${p.status === 'novo' ? '#D1FAE5' : '#FEF3C7'}; color:${p.status === 'novo' ? '#065F46' : '#92400E'};">
             ${statusIcon} ${statusText}
           </span>
-          <span class="tag" style="background:${p.estoque === 'disponivel' ? '#D1FAE5' : '#FEE2E2'}; color:${p.estoque === 'disponivel' ? '#065F46' : '#991B1B'};">
+          <span class="tag" style="background:${p.estoque === 'disponivel' ? '#D1FAE5' : '#FEF3C7'}; color:${p.estoque === 'disponivel' ? '#065F46' : '#92400E'};">
             ${estoqueIcon} ${estoqueText}
           </span>
         </div>
@@ -479,9 +480,8 @@ function renderizarProdutos() {
         
         <div style="display:flex; gap:8px; margin-top:10px;">
           <button class="btn" onclick='adicionarCarrinho(${JSON.stringify(p)})' 
-                  style="${p.estoque === 'indisponivel' ? 'background:#9CA3AF'}"
-                  ${p.estoque === 'indisponivel' ? 'disabled'}>
-            ${p.estoque === 'disponivel' ? '🛒 Adicionar' : ' Reservar'}
+                  style="flex:2;">
+            ${p.estoque === 'disponivel' ? '🛒 Adicionar' : '📋 Reservar'}
           </button>
           <button class="btn" style="background:transparent; border:1px solid #ddd; flex:0; padding:12px 15px; width:auto; font-size:20px;" 
                   onclick='toggleWishlist(${p.id})' id="wishlist-btn-${p.id}">
@@ -495,7 +495,7 @@ function renderizarProdutos() {
       </div>
     </div>
     `;
-  }).join('');
+}).join('');
   
   if (usuarioLogado && tokenJM) {
     carregarWishlistStatus();
