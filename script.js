@@ -805,6 +805,7 @@ function removerDoCarrinho(id) {
 // ============================================
 // FUNÇÃO PARA FINALIZAR PEDIDO
 // ============================================
+
 async function finalizar() {
   if (!usuarioLogado) {
     mostrarToast('Faça login para finalizar', 'error');
@@ -852,18 +853,21 @@ async function finalizar() {
       atualizarContador();
       fecharCarrinho();
       
-      mostrarToast('✅ Pedido enviado! Redirecionando para WhatsApp...');
-      // ✅ REMOVA a chamada de notificação daqui - O BACKEND já envia!
-      setTimeout(function() {
-        window.location.href = data.link;
-      }, 2000);
+      mostrarToast('✅ Pedido enviado! Abrindo WhatsApp...');
+      
+      // ✅ REDIRECIONAMENTO IMEDIATO (sem setTimeout)
+      window.location.href = data.link;
+      
     } else {
       mostrarToast(data.error || 'Erro ao finalizar', 'error');
+      if (btn) {
+        btn.textContent = textoOriginal;
+        btn.disabled = false;
+      }
     }
   } catch (error) {
     console.error('Erro ao finalizar:', error);
     mostrarToast('Erro de conexão', 'error');
-  } finally {
     if (btn) {
       btn.textContent = textoOriginal;
       btn.disabled = false;
