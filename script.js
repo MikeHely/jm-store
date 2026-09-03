@@ -576,7 +576,7 @@ function abrirDetalhes(produto) {
       
       <div style="margin-top:20px; display:flex; gap:10px; flex-wrap:wrap;">
         <button class="btn" onclick='adicionarCarrinho(${JSON.stringify(produto)})' style="flex:1;">🛒 Adicionar ao Carrinho</button>
-        <button class="btn" style="background:#25D366; flex:1;" onclick="window.open('https://wa.me/244949321312?text=Olá! Quero comprar ${encodeURIComponent(produto.nome)}', '_blank')">📱 Comprar Agora</button>
+        <button class="btn" style="background:#25D366; flex:1;" onclick="window.open('https://wa.me/244953652742?text=Olá! Quero comprar ${encodeURIComponent(produto.nome)}', '_blank')">📱 Comprar Agora</button>
       </div>
       
       <div style="margin-top:20px; border-top:1px solid #ddd; padding-top:15px;">
