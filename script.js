@@ -41,6 +41,8 @@ async function testarConexao() {
   }
 }
 
+
+
 // ============================================
 // TOAST NOTIFICATION
 // ============================================
@@ -1422,6 +1424,28 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 });
 
+// ============================================
+// INTERCEPTOR DE FETCH PARA 401
+// ============================================
+const fetchOriginal = window.fetch;
+window.fetch = async function(...args) {
+  const response = await fetchOriginal.apply(this, args);
+  
+  if (response.status === 401) {
+    console.warn('⚠️ 401 detectado em:', args[0]);
+    // Se não for a rota de login, faz logout
+    if (!args[0].includes('/api/login') && !args[0].includes('/api/register')) {
+      localStorage.removeItem('userJM');
+      localStorage.removeItem('tokenJM');
+      usuarioLogado = null;
+      tokenJM = null;
+      atualizarUIUsuario();
+      mostrarToast('Sessão expirada. Faça login novamente.', 'warning');
+    }
+  }
+  
+  return response;
+};
 
 // ============================================
 // FECHAR MODAIS CLICANDO FORA
