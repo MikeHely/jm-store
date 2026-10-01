@@ -19,7 +19,6 @@ let todosProdutos = [];
 let registrosData = [];
 
 
-
 // ============================================
 // VERIFICAR TOKEN AO CARREGAR
 // ============================================
@@ -49,10 +48,12 @@ document.addEventListener('DOMContentLoaded', async function() {
   const tokenValido = await verificarTokenAdmin();
   if (!tokenValido) return;
   
-  // Resto do código...
   await carregarDashboard();
-  // ...
+  await carregarTabela();
+  // ... resto do código
 });
+
+
 // ============================================
 // INICIALIZAÇÃO
 // ============================================
