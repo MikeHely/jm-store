@@ -18,6 +18,41 @@ let filtroAdmin = 'todos';
 let todosProdutos = [];
 let registrosData = [];
 
+
+
+// ============================================
+// VERIFICAR TOKEN AO CARREGAR
+// ============================================
+async function verificarTokenAdmin() {
+  try {
+    const res = await fetch(API_URL + '/api/usuario/perfil', {
+      headers: { 'Authorization': 'Bearer ' + token }
+    });
+    
+    if (res.status === 401) {
+      console.warn('⚠️ Token expirado. Fazendo logout...');
+      localStorage.removeItem('userJM');
+      localStorage.removeItem('tokenJM');
+      alert('Sessão expirada. Faça login novamente.');
+      window.location.href = 'index.html';
+      return false;
+    }
+    return true;
+  } catch (error) {
+    console.error('Erro ao verificar token:', error);
+    return false;
+  }
+}
+
+// Chamar ANTES de carregar qualquer coisa
+document.addEventListener('DOMContentLoaded', async function() {
+  const tokenValido = await verificarTokenAdmin();
+  if (!tokenValido) return;
+  
+  // Resto do código...
+  await carregarDashboard();
+  // ...
+});
 // ============================================
 // INICIALIZAÇÃO
 // ============================================
