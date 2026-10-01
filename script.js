@@ -827,12 +827,18 @@ async function finalizar() {
   
   const btn = document.querySelector('#modal-carrinho .btn-whatsapp');
   const textoOriginal = btn ? btn.textContent : 'Finalizar';
+  
+  // ✅ MOSTRAR AVISO CLARO
   if (btn) {
-    btn.textContent = '⏳ Processando...';
+    btn.textContent = '⏳ Processando (pode levar até 1 minuto)...';
     btn.disabled = true;
   }
   
+  // ✅ Mostrar overlay de loading
+  mostrarLoadingOverlay(true);
+  
   try {
+    // ✅ UMA ÚNICA REQUISIÇÃO
     const res = await fetch(API_URL + '/api/checkout', {
       method: 'POST',
       headers: {
@@ -855,11 +861,10 @@ async function finalizar() {
       atualizarContador();
       fecharCarrinho();
       
-      mostrarToast('✅ Pedido enviado! Abrindo WhatsApp...');
+      mostrarToast('✅ Pedido em andamento! Abrindo WhatsApp...');
       
-      // ✅ REDIRECIONAMENTO IMEDIATO (sem setTimeout)
+      // Redirecionamento imediato
       window.location.href = data.link;
-      
     } else {
       mostrarToast(data.error || 'Erro ao finalizar', 'error');
       if (btn) {
@@ -874,7 +879,70 @@ async function finalizar() {
       btn.textContent = textoOriginal;
       btn.disabled = false;
     }
+  } finally {
+    mostrarLoadingOverlay(false);
   }
+}
+
+// ============================================
+// LOADING OVERLAY (BONITO E CLARO)
+// ============================================
+function mostrarLoadingOverlay(ativo) {
+  let overlay = document.getElementById('loading-overlay');
+  
+  if (!overlay) {
+    overlay = document.createElement('div');
+    overlay.id = 'loading-overlay';
+    overlay.style.cssText = `
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.75);
+      z-index: 99999;
+      justify-content: center;
+      align-items: center;
+      backdrop-filter: blur(5px);
+    `;
+    overlay.innerHTML = `
+      <div style="background: white; padding: 40px; border-radius: 20px; text-align: center; max-width: 400px; box-shadow: 0 20px 60px rgba(0,0,0,0.3);">
+        <div style="font-size: 60px; margin-bottom: 20px; animation: spin 1s linear infinite;">⏳</div>
+        <h2 style="color: #1E3A8A; margin-bottom: 15px;">Processando Pedido</h2>
+        <p style="color: #666; margin-bottom: 20px; line-height: 1.6;">
+          Estamos preparando seu pedido para enviar no WhatsApp.
+          <br><strong>Isso pode levar até 1 minuto.</strong>
+        </p>
+        <div style="background: #FEF3C7; padding: 15px; border-radius: 8px; margin-top: 15px;">
+          <p style="color: #92400E; font-size: 14px; margin: 0;">
+            ⚠️ <strong>Por favor, aguarde!</strong><br>
+            Não feche esta página.
+          </p>
+        </div>
+        <div style="margin-top: 20px; height: 4px; background: #E5E7EB; border-radius: 2px; overflow: hidden;">
+          <div style="height: 100%; background: linear-gradient(90deg, #1E3A8A, #22C55E); width: 0%; animation: progress 60s ease-in-out forwards;"></div>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(overlay);
+    
+    // Adicionar animações
+    const style = document.createElement('style');
+    style.textContent = `
+      @keyframes spin {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+      }
+      @keyframes progress {
+        from { width: 0%; }
+        to { width: 100%; }
+      }
+    `;
+    document.head.appendChild(style);
+  }
+  
+  overlay.style.display = ativo ? 'flex' : 'none';
 }
 
 // ============================================
